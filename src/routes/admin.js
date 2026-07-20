@@ -289,4 +289,47 @@ router.post('/tags/:code/delete', async (req, res) => {
   res.redirect('/admin');
 });
 
+router.post('/tags/:code/reset', async (req, res) => {
+  const code = req.params.code.toLowerCase();
+  await pool.query('DELETE FROM scans WHERE code = $1', [code]);
+  res.redirect(`/admin/tags/${code}`);
+});
+
+router.post('/tags/:code/mockup', async (req, res) => {
+  const code = req.params.code.toLowerCase();
+  const numScans = Math.floor(Math.random() * 50) + 50; // Entre 50 et 100 scans
+  const devices = [
+    { v: 'Apple iPhone 14', os: 'iOS', b: 'Safari' },
+    { v: 'Apple iPhone 13', os: 'iOS', b: 'Safari' },
+    { v: 'Apple iPhone 15 Pro', os: 'iOS', b: 'Instagram WebView' },
+    { v: 'Samsung Galaxy S22', os: 'Android', b: 'Chrome' },
+    { v: 'Samsung Galaxy S23', os: 'Android', b: 'Chrome' },
+    { v: 'Xiaomi Redmi Note 11', os: 'Android', b: 'Chrome' }
+  ];
+  const cities = ['Canggu', 'Seminyak', 'Kuta', 'Ubud', 'Denpasar'];
+  const langs = ['EN', 'EN', 'EN', 'FR', 'ID', 'RU', 'DE'];
+  
+  const insertPromises = [];
+  
+  for (let i = 0; i < numScans; i++) {
+    const dev = devices[Math.floor(Math.random() * devices.length)];
+    const city = cities[Math.floor(Math.random() * cities.length)];
+    const lang = langs[Math.floor(Math.random() * langs.length)];
+    const source = Math.random() > 0.3 ? 'nfc' : 'qr';
+    const pastDays = Math.random() * 30; // Random time in the past 30 days
+    
+    const query = `
+      INSERT INTO scans (code, source, user_agent, ip_address, device_vendor, os_name, browser_name, browser_lang, country, city, scanned_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW() - INTERVAL '${pastDays} DAYS')
+    `;
+    
+    insertPromises.push(pool.query(query, [
+      code, source, 'Mockup', '1.1.1.1', dev.v, dev.os, dev.b, lang, 'ID', city
+    ]));
+  }
+  
+  await Promise.all(insertPromises);
+  res.redirect(`/admin/tags/${code}`);
+});
+
 module.exports = router;

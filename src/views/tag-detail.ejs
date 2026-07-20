@@ -178,6 +178,21 @@
     </div>
   </div>
 
+  <div class="panel" style="background: rgba(217,123,123,0.05); border-color: var(--bad);">
+    <h2 style="color: var(--bad); margin-bottom: 8px;">🛠️ Developer & Testing Tools</h2>
+    <p class="sub" style="margin-bottom: 14px;">These tools are only visible to the admin. Use them to manage demo data.</p>
+    
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+      <form method="POST" action="/admin/tags/<%= tag.code %>/mockup" onsubmit="return confirm('Generate 50-100 fake scans (Bali locations) for demonstration?');">
+        <button class="btn secondary" type="submit">🪄 Generate Mockup Data</button>
+      </form>
+      
+      <form method="POST" action="/admin/tags/<%= tag.code %>/reset" onsubmit="return confirm('Are you sure you want to permanently delete all scans for this card?');">
+        <button class="btn danger" type="submit">🧹 Reset All Stats</button>
+      </form>
+    </div>
+  </div>
+
 </div>
 
 <!-- QR Code Styling Library -->
