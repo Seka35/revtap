@@ -24,8 +24,11 @@ router.get('/:code', async (req, res) => {
     const uaString = req.headers['user-agent'] || '';
     const parser = new UAParser(uaString);
     
-    // IP extraction (handles proxies like nginx/traefik)
-    const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || null;
+    // IP extraction (handles Cloudflare and standard proxies like nginx/traefik)
+    const ip = req.headers['cf-connecting-ip'] || 
+               (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : null) || 
+               req.socket.remoteAddress || 
+               null;
     
     // GeoIP lookup
     const geo = ip ? geoip.lookup(ip) : null;
@@ -41,7 +44,12 @@ router.get('/:code', async (req, res) => {
     const os = parser.getOS();
     const browser = parser.getBrowser();
 
-    const deviceVendor = device.vendor ? `${device.vendor} ${device.model || ''}`.trim() : (device.type || 'Desktop');
+    let deviceVendor = device.vendor ? `${device.vendor} ${device.model || ''}`.trim() : null;
+    if (!deviceVendor) {
+      if (os.name === 'iOS' || os.name === 'Mac OS') deviceVendor = 'Apple Device';
+      else if (os.name === 'Android') deviceVendor = 'Android Device';
+      else deviceVendor = device.type ? (device.type.charAt(0).toUpperCase() + device.type.slice(1)) : 'Desktop PC';
+    }
     const osName = os.name || null;
     const browserName = browser.name || null;
 
