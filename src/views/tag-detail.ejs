@@ -87,6 +87,72 @@
   </div>
 
   <div class="panel">
+    <h2>Detailed Statistics</h2>
+    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+      <div class="stat">
+        <div class="label" style="margin-top:0; margin-bottom:8px;">Top OS</div>
+        <% if (osStats && osStats.length > 0) { %>
+          <% osStats.forEach(os => { %>
+            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
+              <span><%= os.os_name %></span>
+              <span style="color:var(--copper-bright); font-family:'JetBrains Mono',monospace;"><%= os.count %></span>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div style="font-size:13px; color:var(--ink-faint);">No data</div>
+        <% } %>
+      </div>
+      <div class="stat">
+        <div class="label" style="margin-top:0; margin-bottom:8px;">Top Languages</div>
+        <% if (langStats && langStats.length > 0) { %>
+          <% langStats.forEach(lang => { %>
+            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
+              <span><%= lang.browser_lang %></span>
+              <span style="color:var(--copper-bright); font-family:'JetBrains Mono',monospace;"><%= lang.count %></span>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div style="font-size:13px; color:var(--ink-faint);">No data</div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Recent Scans (Detailed)</h2>
+    <% if (scans.length === 0) { %>
+      <p class="sub" style="margin:0;">No scans recorded yet.</p>
+    <% } else { %>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Source</th>
+            <th>Device</th>
+            <th>OS</th>
+            <th>Location</th>
+            <th>IP Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% scans.forEach(s => { %>
+          <tr>
+            <td data-label="Date"><%= new Date(s.scanned_at).toLocaleString('en-US', { timeZone: 'Asia/Makassar', dateStyle: 'short', timeStyle: 'short' }) %></td>
+            <td data-label="Source"><%= s.source === 'nfc' ? 'NFC' : (s.source === 'qr' ? 'QR Code' : '—') %></td>
+            <td data-label="Device"><%= s.device_vendor || '—' %></td>
+            <td data-label="OS"><%= s.os_name || '—' %></td>
+            <td data-label="Location"><%= s.city ? s.city + ', ' + s.country : (s.country || '—') %></td>
+            <td data-label="IP"><%= s.ip_address || '—' %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
+  </div>
+
+  <div class="panel">
     <h2>URLs to Program</h2>
     <p class="sub" style="margin-bottom:12px;">
       Write the NFC URL using NFC Tools. The QR below is ready to print.

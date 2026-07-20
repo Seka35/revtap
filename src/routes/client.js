@@ -106,12 +106,28 @@ router.get('/:code', requireClientAuth, async (req, res) => {
     qr: parseInt(r.qr, 10)
   }));
 
+  const { rows: osStats } = await pool.query(
+    `SELECT os_name, COUNT(*) as count 
+     FROM scans WHERE code = $1 AND os_name IS NOT NULL ${dateFilterStr}
+     GROUP BY os_name ORDER BY count DESC`,
+    [code]
+  );
+
+  const { rows: langStats } = await pool.query(
+    `SELECT browser_lang, COUNT(*) as count 
+     FROM scans WHERE code = $1 AND browser_lang IS NOT NULL ${dateFilterStr}
+     GROUP BY browser_lang ORDER BY count DESC LIMIT 5`,
+    [code]
+  );
+
   res.render('client-dashboard', {
     code,
     business_name: tag.business_name,
     client_whatsapp: tag.client_whatsapp,
     scans: scanRows,
     stats: statsRows[0],
+    osStats,
+    langStats,
     currentFilter: filter,
     currentFilterLabel,
     chartData

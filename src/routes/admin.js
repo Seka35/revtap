@@ -225,11 +225,25 @@ router.get('/tags/:code', async (req, res) => {
     [code]
   );
 
+  const { rows: osStats } = await pool.query(
+    `SELECT os_name, COUNT(*) as count 
+     FROM scans WHERE code = $1 AND os_name IS NOT NULL 
+     GROUP BY os_name ORDER BY count DESC`,
+    [code]
+  );
+
+  const { rows: langStats } = await pool.query(
+    `SELECT browser_lang, COUNT(*) as count 
+     FROM scans WHERE code = $1 AND browser_lang IS NOT NULL 
+     GROUP BY browser_lang ORDER BY count DESC LIMIT 5`,
+    [code]
+  );
+
   const nfcUrl = buildUrl(code, 'nfc');
   const qrUrl = buildUrl(code, 'qr');
 
   res.render('tag-detail', {
-    tag, scans: scanRows, stats: statsRows[0], nfcUrl, qrUrl
+    tag, scans: scanRows, stats: statsRows[0], osStats, langStats, nfcUrl, qrUrl
   });
 });
 

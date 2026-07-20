@@ -1,5 +1,7 @@
 const express = require('express');
 const pool = require('../db');
+const UAParser = require('ua-parser-js');
+const geoip = require('geoip-lite');
 
 const router = express.Router();
 
@@ -18,10 +20,36 @@ router.get('/:code', async (req, res) => {
       return res.status(404).render('not-found', { code });
     }
 
-    // Log the scan (fire and forget style, but awaited to keep it simple/reliable)
+    // --- Tracking logic ---
+    const uaString = req.headers['user-agent'] || '';
+    const parser = new UAParser(uaString);
+    
+    // IP extraction (handles proxies like nginx/traefik)
+    const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || null;
+    
+    // GeoIP lookup
+    const geo = ip ? geoip.lookup(ip) : null;
+    const country = geo ? geo.country : null;
+    const city = geo ? geo.city : null;
+
+    // Accept-Language
+    const langHeader = req.headers['accept-language'] || '';
+    const browserLang = langHeader ? langHeader.split(',')[0].trim().substring(0, 2).toUpperCase() : null;
+
+    // UA parsing
+    const device = parser.getDevice();
+    const os = parser.getOS();
+    const browser = parser.getBrowser();
+
+    const deviceVendor = device.vendor ? `${device.vendor} ${device.model || ''}`.trim() : (device.type || 'Desktop');
+    const osName = os.name || null;
+    const browserName = browser.name || null;
+
+    // Log the scan
     pool.query(
-      'INSERT INTO scans (code, source, user_agent) VALUES ($1, $2, $3)',
-      [code, source, req.headers['user-agent'] || null]
+      `INSERT INTO scans (code, source, user_agent, ip_address, device_vendor, os_name, browser_name, browser_lang, country, city) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [code, source, uaString, ip, deviceVendor, osName, browserName, browserLang, country, city]
     ).catch(err => console.error('Failed to log scan:', err));
 
     if (!tag.active || !tag.review_url) {
