@@ -1,5 +1,4 @@
 const express = require('express');
-const QRCode = require('qrcode');
 const pool = require('../db');
 
 const router = express.Router();
