@@ -116,6 +116,8 @@
 
 <!-- QR Code Styling Library -->
 <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+<!-- html2canvas pour capturer le cadre Google complet en PNG -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 const qrCode = new QRCodeStyling({
   width: 150,
@@ -125,12 +127,19 @@ const qrCode = new QRCodeStyling({
   dotsOptions: { type: "rounded", color: "#000000" },
   cornersSquareOptions: { type: "extra-rounded", color: "#000000" },
   cornersDotOptions: { type: "dot", color: "#000000" },
-  backgroundOptions: { color: "#ffffff" }
+  backgroundOptions: { color: "transparent" } // Fond transparent pour le QR lui-même
 });
 qrCode.append(document.getElementById("qr-container"));
 
 function downloadQR() {
-  qrCode.download({ name: "QR_<%= tag.code %>", extension: "png" });
+  const container = document.getElementById("qr-container");
+  // On capture le cadre entier (bordure + QR) en très haute qualité (scale: 4) avec fond transparent (null)
+  html2canvas(container, { backgroundColor: null, scale: 4 }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = "QR_<%= tag.code %>.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
 }
 </script>
 
