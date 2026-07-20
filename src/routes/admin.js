@@ -196,10 +196,10 @@ router.get('/print', async (req, res) => {
     tags = rows;
   }
 
-  const items = await Promise.all(tags.map(async t => ({
+  const items = tags.map(t => ({
     code: t.code,
-    qrDataUrl: await QRCode.toDataURL(buildUrl(t.code, 'qr'), { margin: 1, width: 300 })
-  })));
+    qrUrl: buildUrl(t.code, 'qr')
+  }));
 
   res.render('print', { items });
 });
@@ -228,10 +228,9 @@ router.get('/tags/:code', async (req, res) => {
 
   const nfcUrl = buildUrl(code, 'nfc');
   const qrUrl = buildUrl(code, 'qr');
-  const qrDataUrl = await QRCode.toDataURL(qrUrl, { margin: 1, width: 300 });
 
   res.render('tag-detail', {
-    tag, scans: scanRows, stats: statsRows[0], nfcUrl, qrUrl, qrDataUrl
+    tag, scans: scanRows, stats: statsRows[0], nfcUrl, qrUrl
   });
 });
 

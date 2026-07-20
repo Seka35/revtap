@@ -24,9 +24,7 @@
   <div class="print-grid">
     <% items.forEach(item => { %>
       <div class="print-card">
-        <div class="qr-google-frame">
-          <img src="<%= item.qrDataUrl %>" alt="QR <%= item.code %>">
-        </div>
+        <div class="qr-google-frame" id="qr-container-<%= item.code %>" data-url="<%= item.qrUrl %>"></div>
         <div class="code"><%= item.code %></div>
       </div>
     <% }) %>
@@ -34,6 +32,23 @@
 </div>
 
 <%- include('partials/bottom-nav', { navActive: 'print' }) %>
+
+<script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+<script>
+document.querySelectorAll('.qr-google-frame[data-url]').forEach(container => {
+  const qrCode = new QRCodeStyling({
+    width: 200,
+    height: 200,
+    data: container.getAttribute('data-url'),
+    margin: 2,
+    dotsOptions: { type: "rounded", color: "#000000" },
+    cornersSquareOptions: { type: "extra-rounded", color: "#000000" },
+    cornersDotOptions: { type: "dot", color: "#000000" },
+    backgroundOptions: { color: "#ffffff" }
+  });
+  qrCode.append(container);
+});
+</script>
 
 </body>
 </html>

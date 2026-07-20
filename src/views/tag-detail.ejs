@@ -104,15 +104,35 @@
       <a href="<%= qrUrl %>" target="_blank" class="btn secondary">Test</a>
     </div>
 
-    <div class="qr-google-frame">
-      <img src="<%= qrDataUrl %>" alt="QR Code">
+    <div class="qr-google-frame" id="qr-container">
+      <!-- QR code injected by JS -->
     </div>
     <div style="margin-top:10px;">
-      <a href="<%= qrDataUrl %>" download="QR_<%= tag.code %>.png" class="btn secondary" style="font-size:12px; padding:6px 12px;">Download QR</a>
+      <button onclick="downloadQR()" class="btn secondary" style="font-size:12px; padding:6px 12px;">Download QR</button>
     </div>
   </div>
 
 </div>
+
+<!-- QR Code Styling Library -->
+<script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+<script>
+const qrCode = new QRCodeStyling({
+  width: 150,
+  height: 150,
+  data: "<%= qrUrl %>",
+  margin: 2,
+  dotsOptions: { type: "rounded", color: "#000000" },
+  cornersSquareOptions: { type: "extra-rounded", color: "#000000" },
+  cornersDotOptions: { type: "dot", color: "#000000" },
+  backgroundOptions: { color: "#ffffff" }
+});
+qrCode.append(document.getElementById("qr-container"));
+
+function downloadQR() {
+  qrCode.download({ name: "QR_<%= tag.code %>", extension: "png" });
+}
+</script>
 
 <script>
 function generateUrl() {
