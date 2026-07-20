@@ -20,6 +20,9 @@ fi
 echo "🐳 Construction et démarrage des conteneurs en production..."
 docker compose -f deploy/docker-compose.prod.yml up --build -d
 
+echo "⚙️  Exécution des migrations de la base de données..."
+docker exec nfc-review-prod-app npm run migrate || echo "⚠️ Erreur lors des migrations, mais on continue."
+
 echo "✅ Déploiement Docker terminé avec succès !"
 echo "🌐 L'application tourne sur le port local 3050."
 echo ""
