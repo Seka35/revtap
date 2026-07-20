@@ -341,12 +341,12 @@ router.post('/tags/:code/mockup', async (req, res) => {
     const lang = langs[Math.floor(Math.random() * langs.length)];
     const source = Math.random() > 0.3 ? 'nfc' : 'qr';
     const pastDays = Math.random() * 30; // Random time in the past 30 days
-    const fakeIp = \`114.124.\${Math.floor(Math.random() * 255)}.\${Math.floor(Math.random() * 255)}\`;
+    const fakeIp = `114.124.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
     
-    const query = \`
+    const query = `
       INSERT INTO scans (code, source, user_agent, ip_address, device_vendor, os_name, browser_name, browser_lang, country, city, scanned_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW() - INTERVAL '\${pastDays} DAYS')
-    \`;
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW() - INTERVAL '${pastDays} DAYS')
+    `;
     
     insertPromises.push(pool.query(query, [
       code, source, 'Mockup', fakeIp, dev.v, dev.os, dev.b, lang, 'ID', city
