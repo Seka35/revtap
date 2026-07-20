@@ -211,9 +211,13 @@ router.get('/tags/:code', async (req, res) => {
   const tag = rows[0];
   if (!tag) return res.status(404).send('Tag not found.');
 
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
   const { rows: scanRows } = await pool.query(
-    'SELECT * FROM scans WHERE code = $1 ORDER BY scanned_at DESC LIMIT 50',
-    [code]
+    'SELECT * FROM scans WHERE code = $1 ORDER BY scanned_at DESC LIMIT $2 OFFSET $3',
+    [code, limit, offset]
   );
 
   const { rows: statsRows } = await pool.query(
@@ -224,6 +228,9 @@ router.get('/tags/:code', async (req, res) => {
      FROM scans WHERE code = $1`,
     [code]
   );
+
+  const totalScans = parseInt(statsRows[0].total, 10);
+  const totalPages = Math.ceil(totalScans / limit) || 1;
 
   const { rows: osStats } = await pool.query(
     `SELECT os_name, COUNT(*) as count 
@@ -239,11 +246,28 @@ router.get('/tags/:code', async (req, res) => {
     [code]
   );
 
+  const { rows: chartRows } = await pool.query(`
+    SELECT 
+      TO_CHAR(scanned_at AT TIME ZONE 'Asia/Makassar', 'YYYY-MM-DD') as period,
+      COUNT(*) FILTER (WHERE source = 'nfc') as nfc,
+      COUNT(*) FILTER (WHERE source = 'qr') as qr
+    FROM scans
+    WHERE code = $1
+    GROUP BY period
+    ORDER BY period ASC
+  `, [code]);
+
+  const chartData = chartRows.map(r => ({
+    date: r.period,
+    nfc: parseInt(r.nfc, 10),
+    qr: parseInt(r.qr, 10)
+  }));
+
   const nfcUrl = buildUrl(code, 'nfc');
   const qrUrl = buildUrl(code, 'qr');
 
   res.render('tag-detail', {
-    tag, scans: scanRows, stats: statsRows[0], osStats, langStats, nfcUrl, qrUrl
+    tag, scans: scanRows, stats: statsRows[0], osStats, langStats, chartData, page, totalPages, nfcUrl, qrUrl
   });
 });
 
@@ -317,14 +341,15 @@ router.post('/tags/:code/mockup', async (req, res) => {
     const lang = langs[Math.floor(Math.random() * langs.length)];
     const source = Math.random() > 0.3 ? 'nfc' : 'qr';
     const pastDays = Math.random() * 30; // Random time in the past 30 days
+    const fakeIp = \`114.124.\${Math.floor(Math.random() * 255)}.\${Math.floor(Math.random() * 255)}\`;
     
-    const query = `
+    const query = \`
       INSERT INTO scans (code, source, user_agent, ip_address, device_vendor, os_name, browser_name, browser_lang, country, city, scanned_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW() - INTERVAL '${pastDays} DAYS')
-    `;
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW() - INTERVAL '\${pastDays} DAYS')
+    \`;
     
     insertPromises.push(pool.query(query, [
-      code, source, 'Mockup', '1.1.1.1', dev.v, dev.os, dev.b, lang, 'ID', city
+      code, source, 'Mockup', fakeIp, dev.v, dev.os, dev.b, lang, 'ID', city
     ]));
   }
   

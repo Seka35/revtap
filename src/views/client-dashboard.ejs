@@ -96,6 +96,7 @@
             <th>Source</th>
             <th>Device</th>
             <th>OS</th>
+            <th>Language</th>
             <th>Location</th>
           </tr>
         </thead>
@@ -106,6 +107,7 @@
             <td data-label="Source"><%= s.source === 'nfc' ? 'NFC' : (s.source === 'qr' ? 'QR Code' : '—') %></td>
             <td data-label="Device"><%= s.device_vendor || '—' %></td>
             <td data-label="OS"><%= s.os_name || '—' %></td>
+            <td data-label="Language"><%= s.browser_lang || '—' %></td>
             <td data-label="Location"><%= s.city ? s.city + ', ' + s.country : (s.country || '—') %></td>
           </tr>
           <% }) %>

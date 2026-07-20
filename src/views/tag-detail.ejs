@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Card <%= tag.code %> — NFC Review Tracker</title>
 <link rel="stylesheet" href="/style.css">
+<!-- Chart.js for graphs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -87,6 +89,11 @@
   </div>
 
   <div class="panel">
+    <h2>Scan Analytics</h2>
+    <canvas id="scansChart" width="400" height="150"></canvas>
+  </div>
+
+  <div class="panel">
     <h2>Detailed Statistics</h2>
     <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
       <div class="stat">
@@ -131,6 +138,7 @@
             <th>Source</th>
             <th>Device</th>
             <th>OS</th>
+            <th>Language</th>
             <th>Location</th>
             <th>IP Address</th>
           </tr>
@@ -142,6 +150,7 @@
             <td data-label="Source"><%= s.source === 'nfc' ? 'NFC' : (s.source === 'qr' ? 'QR Code' : '—') %></td>
             <td data-label="Device"><%= s.device_vendor || '—' %></td>
             <td data-label="OS"><%= s.os_name || '—' %></td>
+            <td data-label="Language"><%= s.browser_lang || '—' %></td>
             <td data-label="Location"><%= s.city ? s.city + ', ' + s.country : (s.country || '—') %></td>
             <td data-label="IP"><%= s.ip_address || '—' %></td>
           </tr>
@@ -149,7 +158,19 @@
         </tbody>
       </table>
     </div>
+    
+    <% if (totalPages > 1) { %>
+    <div style="margin-top: 14px; display: flex; gap: 8px; align-items: center;">
+      <% if (page > 1) { %>
+        <a href="?page=<%= page - 1 %>" class="btn secondary" style="padding: 4px 10px; font-size: 12px;">← Prev</a>
+      <% } %>
+      <span style="font-size: 13px; color: var(--ink); padding: 4px;">Page <%= page %> of <%= totalPages %></span>
+      <% if (page < totalPages) { %>
+        <a href="?page=<%= page + 1 %>" class="btn secondary" style="padding: 4px 10px; font-size: 12px;">Next →</a>
+      <% } %>
+    </div>
     <% } %>
+    
   </div>
 
   <div class="panel">
@@ -231,6 +252,56 @@ function generateUrl() {
     document.getElementById('review_url').value = `https://search.google.com/local/writereview?placeid=${placeId}`;
   }
 }
+</script>
+
+<script>
+  Chart.defaults.color = '#9a9ba3';
+  Chart.defaults.borderColor = '#33353f';
+  
+  const ctx = document.getElementById('scansChart').getContext('2d');
+  const chartData = <%- JSON.stringify(chartData || []) %>;
+  
+  const labels = chartData.map(d => d.date);
+  const nfcData = chartData.map(d => d.nfc);
+  const qrData = chartData.map(d => d.qr);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'NFC Scans',
+          data: nfcData,
+          borderColor: '#e8935c', // copper-bright
+          backgroundColor: 'rgba(232, 147, 92, 0.1)',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'QR Scans',
+          data: qrData,
+          borderColor: '#7fbf8f', // good
+          backgroundColor: 'rgba(127, 191, 143, 0.1)',
+          tension: 0.3,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: { position: 'top' }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+      }
+    }
+  });
 </script>
 
 <%- include('partials/bottom-nav', { navActive: 'none' }) %>
