@@ -284,17 +284,31 @@ router.get('/tags/:code', async (req, res) => {
     qr: parseInt(r.qr, 10)
   }));
 
+  const { rows: latestReviews } = await pool.query(
+    `SELECT * FROM google_latest_reviews WHERE code = $1 ORDER BY time DESC`,
+    [code]
+  );
+  
+  const { rows: reviewHistory } = await pool.query(
+    `SELECT rating, user_ratings_total, fetched_at 
+     FROM google_reviews_history 
+     WHERE code = $1 
+     ORDER BY fetched_at ASC`,
+    [code]
+  );
+
   const nfcUrl = buildUrl(code, 'nfc');
   const qrUrl = buildUrl(code, 'qr');
 
   res.render('tag-detail', {
-    tag, scans: scanRows, stats: statsRows[0], osStats, langStats, chartData, page, totalPages, nfcUrl, qrUrl, heatmapData, maxHeat
+    tag, scans: scanRows, stats: statsRows[0], osStats, langStats, chartData, page, totalPages, nfcUrl, qrUrl, heatmapData, maxHeat,
+    latestReviews, reviewHistory
   });
 });
 
 router.post('/tags/:code', express.urlencoded({ extended: true }), async (req, res) => {
   const code = req.params.code.toLowerCase();
-  const { business_name, review_url, price_paid, notes, active, client_password, client_whatsapp } = req.body;
+  const { business_name, review_url, price_paid, notes, active, client_password, client_whatsapp, google_place_id } = req.body;
 
   const { rows } = await pool.query('SELECT * FROM tags WHERE code = $1', [code]);
   const existing = rows[0];
@@ -310,8 +324,9 @@ router.post('/tags/:code', express.urlencoded({ extended: true }), async (req, r
       active = $5,
       sold_at = CASE WHEN $5 AND NOT $6 THEN now() ELSE sold_at END,
       client_password = $7,
-      client_whatsapp = $8
-     WHERE code = $9`,
+      client_whatsapp = $8,
+      google_place_id = $9
+     WHERE code = $10`,
     [
       business_name || null,
       review_url || null,
@@ -321,10 +336,22 @@ router.post('/tags/:code', express.urlencoded({ extended: true }), async (req, r
       wasActive,
       client_password || null,
       client_whatsapp || null,
+      google_place_id || null,
       code
     ]
   );
 
+  res.redirect(`/admin/tags/${code}`);
+});
+
+const googlePlaces = require('../services/googlePlaces');
+
+router.post('/tags/:code/fetch-google', async (req, res) => {
+  const code = req.params.code.toLowerCase();
+  const { rows } = await pool.query('SELECT google_place_id FROM tags WHERE code = $1', [code]);
+  if (rows.length > 0 && rows[0].google_place_id) {
+    await googlePlaces.updateTagGoogleData(code, rows[0].google_place_id);
+  }
   res.redirect(`/admin/tags/${code}`);
 });
 
@@ -337,12 +364,14 @@ router.post('/tags/:code/delete', async (req, res) => {
 router.post('/tags/:code/reset', async (req, res) => {
   const code = req.params.code.toLowerCase();
   await pool.query('DELETE FROM scans WHERE code = $1', [code]);
+  await pool.query('DELETE FROM google_reviews_history WHERE code = $1', [code]);
+  await pool.query('DELETE FROM google_latest_reviews WHERE code = $1', [code]);
   res.redirect(`/admin/tags/${code}`);
 });
 
 router.post('/tags/:code/mockup', async (req, res) => {
   const code = req.params.code.toLowerCase();
-  const numScans = Math.floor(Math.random() * 50) + 50; // Entre 50 et 100 scans
+  const numScans = Math.floor(Math.random() * 50) + 50;
   const devices = [
     { v: 'Apple iPhone 14', os: 'iOS', b: 'Safari' },
     { v: 'Apple iPhone 13', os: 'iOS', b: 'Safari' },
@@ -375,6 +404,42 @@ router.post('/tags/:code/mockup', async (req, res) => {
   }
   
   await Promise.all(insertPromises);
+
+  // Mockup Google Reviews
+  await pool.query('DELETE FROM google_reviews_history WHERE code = $1', [code]);
+  await pool.query('DELETE FROM google_latest_reviews WHERE code = $1', [code]);
+  
+  let currentRating = 4.2;
+  let currentTotal = 110;
+  for (let d = 30; d >= 0; d--) {
+    if (Math.random() > 0.5) {
+      currentTotal += Math.floor(Math.random() * 3);
+      currentRating += (Math.random() * 0.05);
+      if (currentRating > 4.9) currentRating = 4.9;
+    }
+    await pool.query(
+      `INSERT INTO google_reviews_history (code, rating, user_ratings_total, fetched_at)
+       VALUES ($1, $2, $3, NOW() - INTERVAL '${d} DAYS')`,
+      [code, currentRating.toFixed(2), currentTotal]
+    );
+  }
+
+  const fakeNames = ["John Doe", "Made Suardana", "Sarah Smith", "Ketut", "Elena V."];
+  const fakeTexts = [
+    "Amazing place! Highly recommend it.",
+    "Bagus sekali, pelayanannya ramah.",
+    "Best experience I had in Bali so far.",
+    "Very good quality and fast service.",
+    "Loved it, will definitely come back!"
+  ];
+  for (let i = 0; i < 5; i++) {
+    await pool.query(
+      `INSERT INTO google_latest_reviews (code, author_name, rating, text, time)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [code, fakeNames[i], 5, fakeTexts[i], Math.floor(Date.now() / 1000) - (i * 86400)]
+    );
+  }
+
   res.redirect(`/admin/tags/${code}`);
 });
 

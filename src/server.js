@@ -30,3 +30,12 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`NFC review tracker running on port ${port}`);
 });
+
+// Setup daily cron job for Google Places
+const cron = require('node-cron');
+const googlePlaces = require('./services/googlePlaces');
+// Run every day at 03:00 AM
+cron.schedule('0 3 * * *', () => {
+  console.log('Running scheduled Google Places fetch...');
+  googlePlaces.runDailyJob().catch(err => console.error('Cron job error:', err));
+});

@@ -150,6 +150,19 @@ router.get('/:code', requireClientAuth, async (req, res) => {
     if (c > maxHeat) maxHeat = c;
   });
 
+  const { rows: latestReviews } = await pool.query(
+    `SELECT * FROM google_latest_reviews WHERE code = $1 ORDER BY time DESC`,
+    [code]
+  );
+  
+  const { rows: reviewHistory } = await pool.query(
+    `SELECT rating, user_ratings_total, fetched_at 
+     FROM google_reviews_history 
+     WHERE code = $1 
+     ORDER BY fetched_at ASC`,
+    [code]
+  );
+
   res.render('client-dashboard', {
     code,
     business_name: tag.business_name,
@@ -164,7 +177,9 @@ router.get('/:code', requireClientAuth, async (req, res) => {
     page,
     totalPages,
     heatmapData,
-    maxHeat
+    maxHeat,
+    latestReviews,
+    reviewHistory
   });
 });
 

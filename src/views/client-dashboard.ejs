@@ -25,6 +25,65 @@
     <a href="?filter=all" class="btn <%= currentFilter === 'all' ? '' : 'secondary' %>">All Time</a>
   </div>
 
+  <% if (reviewHistory && reviewHistory.length > 0) { 
+       const latest = reviewHistory[reviewHistory.length - 1];
+       const first = reviewHistory[0];
+       const rating = parseFloat(latest.rating).toFixed(1);
+       const reviewCount = latest.user_ratings_total;
+       
+       const reviewGrowth = reviewCount - first.user_ratings_total;
+       const ratingGrowth = (latest.rating - first.rating).toFixed(1);
+  %>
+  <div class="panel" style="background: linear-gradient(145deg, rgba(232, 147, 92, 0.1), rgba(20, 21, 26, 0.8)); border-color: var(--copper); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h2 style="color: var(--copper-bright); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+        Google Reviews
+        <span style="font-size: 11px; padding: 2px 6px; background: var(--copper); color: #000; border-radius: 4px; font-weight: 600;">LIVE</span>
+      </h2>
+      <div style="font-size: 32px; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px;">
+        <%= rating %>
+        <div style="color: #FFD700; font-size: 24px;">★★★★★</div>
+      </div>
+      <div style="color: var(--ink-dim); font-size: 13px;">Based on <%= reviewCount %> authentic reviews</div>
+    </div>
+    
+    <% if (reviewGrowth > 0 || ratingGrowth > 0) { %>
+    <div style="background: rgba(127,191,143,0.1); border: 1px solid var(--good); padding: 12px 16px; border-radius: 8px; flex: 1; min-width: 200px;">
+      <div style="font-size: 13px; color: var(--good); margin-bottom: 4px;">🚀 Impact since activation</div>
+      <div style="font-size: 15px; color: white;">
+        <% if (reviewGrowth > 0) { %>+<b><%= reviewGrowth %></b> new reviews<% } %>
+        <% if (ratingGrowth > 0 && reviewGrowth > 0) { %> & <% } %>
+        <% if (ratingGrowth > 0) { %>rating went up by <b>+<%= ratingGrowth %></b><% } %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+  
+  <% if (latestReviews && latestReviews.length > 0) { %>
+  <div class="panel">
+    <h2>Latest 5-Star Experiences</h2>
+    <div style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px;">
+      <% latestReviews.forEach(r => { %>
+        <div style="min-width: 250px; max-width: 280px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 8px; padding: 12px; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <div style="width: 24px; height: 24px; background: var(--copper); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; font-size: 10px; font-weight: bold;">
+              <%= r.author_name.charAt(0).toUpperCase() %>
+            </div>
+            <div style="font-size: 12px; color: white; font-weight: 500;"><%= r.author_name %></div>
+          </div>
+          <div style="color: #FFD700; font-size: 12px; margin-bottom: 6px;">
+            <% for(let i=0; i<r.rating; i++) { %>★<% } %>
+          </div>
+          <div style="font-size: 12px; color: var(--ink-dim); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+            "<%= r.text %>"
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+  <% } %>
+  <% } %>
+
   <div class="stats-grid three-cols">
     <div class="stat">
       <div class="num"><%= stats.total %></div>

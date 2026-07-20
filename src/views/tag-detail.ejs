@@ -34,7 +34,7 @@
           Find your Place ID <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" style="color: var(--copper); text-decoration: underline;">here</a>, paste it below, and click Generate.
         </p>
         <div class="row" style="margin-bottom:0;">
-          <input type="text" id="place_id_helper" placeholder="ChIJ..." style="margin-bottom:0; flex:1;">
+          <input type="text" id="google_place_id" name="google_place_id" value="<%= tag.google_place_id || '' %>" placeholder="ChIJ..." style="margin-bottom:0; flex:1;">
           <button type="button" class="btn secondary" onclick="generateUrl()">Generate URL</button>
         </div>
       </div>
@@ -72,12 +72,12 @@
     </div>
 
     <form method="POST" action="/admin/tags/<%= tag.code %>">
-      <!-- Hidden fields to retain data since form submits whole row -->
       <input type="hidden" name="business_name" value="<%= tag.business_name || '' %>">
       <input type="hidden" name="review_url" value="<%= tag.review_url || '' %>">
       <input type="hidden" name="price_paid" value="<%= tag.price_paid || '' %>">
       <input type="hidden" name="client_whatsapp" value="<%= tag.client_whatsapp || '' %>">
       <input type="hidden" name="notes" value="<%= tag.notes || '' %>">
+      <input type="hidden" name="google_place_id" value="<%= tag.google_place_id || '' %>">
       <% if (tag.active) { %><input type="hidden" name="active" value="on"><% } %>
 
       <label for="client_password">Client Password</label>
@@ -87,6 +87,39 @@
       </div>
     </form>
   </div>
+
+  <% if (reviewHistory && reviewHistory.length > 0) { 
+       const latest = reviewHistory[reviewHistory.length - 1];
+       const first = reviewHistory[0];
+       const rating = parseFloat(latest.rating).toFixed(1);
+       const reviewCount = latest.user_ratings_total;
+       
+       const reviewGrowth = reviewCount - first.user_ratings_total;
+       const ratingGrowth = (latest.rating - first.rating).toFixed(1);
+  %>
+  <div class="panel" style="background: linear-gradient(145deg, rgba(232, 147, 92, 0.1), rgba(20, 21, 26, 0.8)); border-color: var(--copper); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h2 style="color: var(--copper-bright); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+        Google Reviews <span style="font-size: 11px; padding: 2px 6px; background: var(--copper); color: #000; border-radius: 4px; font-weight: 600;">LIVE</span>
+      </h2>
+      <div style="font-size: 32px; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px;">
+        <%= rating %> <div style="color: #FFD700; font-size: 24px;">★★★★★</div>
+      </div>
+      <div style="color: var(--ink-dim); font-size: 13px;">Based on <%= reviewCount %> authentic reviews</div>
+    </div>
+    
+    <% if (reviewGrowth > 0 || ratingGrowth > 0) { %>
+    <div style="background: rgba(127,191,143,0.1); border: 1px solid var(--good); padding: 12px 16px; border-radius: 8px; flex: 1; min-width: 200px;">
+      <div style="font-size: 13px; color: var(--good); margin-bottom: 4px;">🚀 Impact since activation</div>
+      <div style="font-size: 15px; color: white;">
+        <% if (reviewGrowth > 0) { %>+<b><%= reviewGrowth %></b> new reviews<% } %>
+        <% if (ratingGrowth > 0 && reviewGrowth > 0) { %> & <% } %>
+        <% if (ratingGrowth > 0) { %>rating went up by <b>+<%= ratingGrowth %></b><% } %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+  <% } %>
 
   <div class="panel">
     <h2>Scan Analytics</h2>
@@ -241,6 +274,10 @@
     <p class="sub" style="margin-bottom: 14px;">These tools are only visible to the admin. Use them to manage demo data.</p>
     
     <div style="display:flex; gap:12px; flex-wrap:wrap;">
+      <form method="POST" action="/admin/tags/<%= tag.code %>/fetch-google">
+        <button class="btn secondary" type="submit">🔄 Fetch Google API</button>
+      </form>
+
       <form method="POST" action="/admin/tags/<%= tag.code %>/mockup" onsubmit="return confirm('Generate 50-100 fake scans (Bali locations) for demonstration?');">
         <button class="btn secondary" type="submit">🪄 Generate Mockup Data</button>
       </form>
@@ -284,7 +321,7 @@ function downloadQR() {
 
 <script>
 function generateUrl() {
-  const placeId = document.getElementById('place_id_helper').value.trim();
+  const placeId = document.getElementById('google_place_id').value.trim();
   if (placeId) {
     document.getElementById('review_url').value = `https://search.google.com/local/writereview?placeid=${placeId}`;
   }
