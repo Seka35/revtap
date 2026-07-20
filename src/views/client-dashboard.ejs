@@ -25,12 +25,6 @@
     <a href="?filter=all" class="btn <%= currentFilter === 'all' ? '' : 'secondary' %>">All Time</a>
   </div>
 
-  <div class="panel" style="background: rgba(127,191,143,0.1); border-color: var(--good); text-align: center;">
-    <h2 style="color: var(--good); margin-bottom: 8px;">Need help?</h2>
-    <p class="sub" style="margin-bottom: 14px; color: var(--ink);">Any questions about your cards or need modifications?</p>
-    <a href="https://wa.me/6281558509613" target="_blank" class="btn" style="background: #25D366; color: white;">Contact WhatsApp Support</a>
-  </div>
-
   <div class="stats-grid three-cols">
     <div class="stat">
       <div class="num"><%= stats.total %></div>
@@ -114,7 +108,26 @@
         </tbody>
       </table>
     </div>
+    
+    <% if (totalPages > 1) { %>
+    <div style="margin-top: 14px; display: flex; gap: 8px; align-items: center;">
+      <% if (page > 1) { %>
+        <a href="?page=<%= page - 1 %>&filter=<%= currentFilter %>" class="btn secondary" style="padding: 4px 10px; font-size: 12px;">← Prev</a>
+      <% } %>
+      <span style="font-size: 13px; color: var(--ink); padding: 4px;">Page <%= page %> of <%= totalPages %></span>
+      <% if (page < totalPages) { %>
+        <a href="?page=<%= page + 1 %>&filter=<%= currentFilter %>" class="btn secondary" style="padding: 4px 10px; font-size: 12px;">Next →</a>
+      <% } %>
+    </div>
     <% } %>
+    
+    <% } %>
+  </div>
+
+  <div class="panel" style="background: rgba(127,191,143,0.1); border-color: var(--good); text-align: center;">
+    <h2 style="color: var(--good); margin-bottom: 8px;">Need help?</h2>
+    <p class="sub" style="margin-bottom: 14px; color: var(--ink);">Any questions about your cards or need modifications?</p>
+    <a href="https://wa.me/6281558509613" target="_blank" class="btn" style="background: #25D366; color: white;">Contact WhatsApp Support</a>
   </div>
 
 </div>

@@ -75,9 +75,13 @@ router.get('/:code', requireClientAuth, async (req, res) => {
   const { rows: tagRows } = await pool.query('SELECT business_name, client_whatsapp FROM tags WHERE code = $1', [code]);
   const tag = tagRows[0];
 
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
   const { rows: scanRows } = await pool.query(
-    `SELECT * FROM scans WHERE code = $1 ${dateFilterStr} ORDER BY scanned_at DESC LIMIT 50`,
-    [code]
+    `SELECT * FROM scans WHERE code = $1 ${dateFilterStr} ORDER BY scanned_at DESC LIMIT $2 OFFSET $3`,
+    [code, limit, offset]
   );
 
   const { rows: statsRows } = await pool.query(
@@ -88,6 +92,9 @@ router.get('/:code', requireClientAuth, async (req, res) => {
      FROM scans WHERE code = $1 ${dateFilterStr}`,
     [code]
   );
+
+  const totalScans = parseInt(statsRows[0].total, 10) || 0;
+  const totalPages = Math.ceil(totalScans / limit) || 1;
 
   const { rows: chartRows } = await pool.query(`
     SELECT 
@@ -130,7 +137,9 @@ router.get('/:code', requireClientAuth, async (req, res) => {
     langStats,
     currentFilter: filter,
     currentFilterLabel,
-    chartData
+    chartData,
+    page,
+    totalPages
   });
 });
 
