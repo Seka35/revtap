@@ -246,6 +246,27 @@ router.get('/tags/:code', async (req, res) => {
     [code]
   );
 
+  const { rows: heatmapRows } = await pool.query(
+    `SELECT
+       EXTRACT(ISODOW FROM scanned_at AT TIME ZONE 'Asia/Makassar') AS dow,
+       EXTRACT(HOUR FROM scanned_at AT TIME ZONE 'Asia/Makassar') AS hour,
+       COUNT(*) AS count
+     FROM scans
+     WHERE code = $1
+     GROUP BY dow, hour`,
+    [code]
+  );
+
+  const heatmapData = Array.from({ length: 7 }, () => Array(24).fill(0));
+  let maxHeat = 0;
+  heatmapRows.forEach(r => {
+    const d = parseInt(r.dow) - 1;
+    const h = parseInt(r.hour);
+    const c = parseInt(r.count);
+    heatmapData[d][h] = c;
+    if (c > maxHeat) maxHeat = c;
+  });
+
   const { rows: chartRows } = await pool.query(`
     SELECT 
       TO_CHAR(scanned_at AT TIME ZONE 'Asia/Makassar', 'YYYY-MM-DD') as period,
@@ -267,7 +288,7 @@ router.get('/tags/:code', async (req, res) => {
   const qrUrl = buildUrl(code, 'qr');
 
   res.render('tag-detail', {
-    tag, scans: scanRows, stats: statsRows[0], osStats, langStats, chartData, page, totalPages, nfcUrl, qrUrl
+    tag, scans: scanRows, stats: statsRows[0], osStats, langStats, chartData, page, totalPages, nfcUrl, qrUrl, heatmapData, maxHeat
   });
 });
 

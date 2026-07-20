@@ -127,6 +127,29 @@ router.get('/:code', requireClientAuth, async (req, res) => {
     [code]
   );
 
+  const { rows: heatmapRows } = await pool.query(
+    `SELECT
+       EXTRACT(ISODOW FROM scanned_at AT TIME ZONE 'Asia/Makassar') AS dow,
+       EXTRACT(HOUR FROM scanned_at AT TIME ZONE 'Asia/Makassar') AS hour,
+       COUNT(*) AS count
+     FROM scans
+     WHERE code = $1 ${dateFilterStr}
+     GROUP BY dow, hour`
+    , [code]
+  );
+
+  // Initialize 7x24 matrix (day 1-7, hour 0-23)
+  const heatmapData = Array.from({ length: 7 }, () => Array(24).fill(0));
+  let maxHeat = 0;
+  heatmapRows.forEach(r => {
+    // dow is 1 (Mon) to 7 (Sun). array index is dow - 1
+    const d = parseInt(r.dow) - 1;
+    const h = parseInt(r.hour);
+    const c = parseInt(r.count);
+    heatmapData[d][h] = c;
+    if (c > maxHeat) maxHeat = c;
+  });
+
   res.render('client-dashboard', {
     code,
     business_name: tag.business_name,
@@ -139,7 +162,9 @@ router.get('/:code', requireClientAuth, async (req, res) => {
     currentFilterLabel,
     chartData,
     page,
-    totalPages
+    totalPages,
+    heatmapData,
+    maxHeat
   });
 });
 
