@@ -268,3 +268,27 @@ input:focus,textarea:focus{border-color:var(--copper);}
     transform: translateY(-50%);
   }
 }
+
+/* --- GOOGLE QR CODE STYLING --- */
+.qr-google-frame {
+  background: conic-gradient(
+    #ea4335 0deg 90deg,     /* Top Right - Red */
+    #fbbc05 90deg 180deg,   /* Bottom Right - Yellow */
+    #34a853 180deg 270deg,  /* Bottom Left - Green */
+    #4285f4 270deg 360deg   /* Top Left - Blue */
+  );
+  padding: 8px; /* Épaisseur de la bordure */
+  border-radius: 20px; /* Arrondi extérieur */
+  display: inline-block;
+}
+.qr-google-frame img {
+  display: block;
+  border-radius: 12px; /* Arrondi intérieur (QR) */
+  background: #fff;
+  width: 150px;
+  height: 150px;
+}
+.print-card .qr-google-frame img {
+  width: 100%;
+  height: auto;
+}

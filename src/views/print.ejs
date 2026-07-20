@@ -24,7 +24,9 @@
   <div class="print-grid">
     <% items.forEach(item => { %>
       <div class="print-card">
-        <img src="<%= item.qrDataUrl %>" alt="QR <%= item.code %>">
+        <div class="qr-google-frame">
+          <img src="<%= item.qrDataUrl %>" alt="QR <%= item.code %>">
+        </div>
         <div class="code"><%= item.code %></div>
       </div>
     <% }) %>
