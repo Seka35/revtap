@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: nfc-review-prod-app
+    restart: always
+    ports:
+      - "127.0.0.1:3050:3000"
+    env_file:
+      - .env.prod
+    depends_on:
+      - db
+  
+  db:
+    image: postgres:15-alpine
+    container_name: nfc-review-prod-db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=nfc_review
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_prod_data:

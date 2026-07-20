@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  nfc-review:
+    build: .
+    container_name: nfc-review-tracker
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nfc-review.rule=Host(`tap.tondomaine.com`)"
+      - "traefik.http.routers.nfc-review.entrypoints=websecure"
+      - "traefik.http.routers.nfc-review.tls.certresolver=letsencrypt"
+      - "traefik.http.services.nfc-review.loadbalancer.server.port=3000"
+
+networks:
+  traefik:
+    external: true

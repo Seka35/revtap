@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — <%= business_name || 'Client' %></title>
+<link rel="stylesheet" href="/style.css">
+<!-- Chart.js for graphs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="top-nav" style="position: sticky; top: 0; background: rgba(20, 21, 26, 0.95); backdrop-filter: blur(10px); z-index: 100; margin-left: -20px; margin-right: -20px; padding: 16px 20px; border-bottom: 1px solid var(--line); margin-bottom: 24px; align-items: center;">
+    <div style="flex: 1;">
+      <div class="eyebrow" style="margin-bottom: 4px;"><span class="dot"></span>CLIENT PORTAL</div>
+      <h1 style="font-size: 20px; margin: 0;"><%= business_name || 'Your Business' %></h1>
+    </div>
+    <div class="links"><a href="/client/<%= code %>/logout" class="btn secondary" style="padding: 6px 12px; font-size: 12px;">Logout</a></div>
+  </div>
+
+  <div class="filter-group">
+    <a href="?filter=24h" class="btn <%= currentFilter === '24h' ? '' : 'secondary' %>">24h</a>
+    <a href="?filter=yesterday" class="btn <%= currentFilter === 'yesterday' ? '' : 'secondary' %>">Yesterday</a>
+    <a href="?filter=week" class="btn <%= currentFilter === 'week' ? '' : 'secondary' %>">This Week</a>
+    <a href="?filter=all" class="btn <%= currentFilter === 'all' ? '' : 'secondary' %>">All Time</a>
+  </div>
+
+  <div class="panel" style="background: rgba(127,191,143,0.1); border-color: var(--good); text-align: center;">
+    <h2 style="color: var(--good); margin-bottom: 8px;">Need help?</h2>
+    <p class="sub" style="margin-bottom: 14px; color: var(--ink);">Any questions about your cards or need modifications?</p>
+    <a href="https://wa.me/6281558509613" target="_blank" class="btn" style="background: #25D366; color: white;">Contact WhatsApp Support</a>
+  </div>
+
+  <div class="stats-grid three-cols">
+    <div class="stat">
+      <div class="num"><%= stats.total %></div>
+      <div class="label">Total Scans (<%= currentFilterLabel %>)</div>
+    </div>
+    <div class="stat">
+      <div class="num"><%= stats.nfc_count %></div>
+      <div class="label">Via NFC (Tap)</div>
+    </div>
+    <div class="stat">
+      <div class="num"><%= stats.qr_count %></div>
+      <div class="label">Via QR code</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Scan Analytics</h2>
+    <canvas id="scansChart" width="400" height="150"></canvas>
+  </div>
+
+  <div class="panel">
+    <h2>Latest Scans</h2>
+    <% if (scans.length === 0) { %>
+      <p class="sub" style="margin:0;">No scans recorded yet.</p>
+    <% } else { %>
+    <table>
+      <thead><tr><th>Date</th><th>Source</th></tr></thead>
+      <tbody>
+        <% scans.forEach(s => { %>
+        <tr>
+          <td data-label="Date"><%= new Date(s.scanned_at).toLocaleString('en-US', { timeZone: 'Asia/Makassar', dateStyle: 'medium', timeStyle: 'short' }) %></td>
+          <td data-label="Source"><%= s.source === 'nfc' ? 'NFC' : (s.source === 'qr' ? 'QR Code' : '—') %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } %>
+  </div>
+
+</div>
+<!-- Client bottom padding for consistency -->
+<style>@media (max-width: 700px) { body { padding-bottom: 20px; } }</style>
+
+<script>
+  Chart.defaults.color = '#9a9ba3';
+  Chart.defaults.borderColor = '#33353f';
+  
+  const ctx = document.getElementById('scansChart').getContext('2d');
+  const chartData = <%- JSON.stringify(chartData) %>;
+  
+  const labels = chartData.map(d => d.date);
+  const nfcData = chartData.map(d => d.nfc);
+  const qrData = chartData.map(d => d.qr);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'NFC Scans',
+          data: nfcData,
+          borderColor: '#e8935c', // copper-bright
+          backgroundColor: 'rgba(232, 147, 92, 0.1)',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'QR Scans',
+          data: qrData,
+          borderColor: '#7fbf8f', // good
+          backgroundColor: 'rgba(127, 191, 143, 0.1)',
+          tension: 0.3,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: { position: 'top' }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+ALTER TABLE tags
+ADD COLUMN IF NOT EXISTS client_password TEXT,
+ADD COLUMN IF NOT EXISTS client_whatsapp TEXT;

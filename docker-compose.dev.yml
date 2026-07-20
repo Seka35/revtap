@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: nfc-review-dev-app
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/nfc_review
+      - ADMIN_PASSWORD=admin
+      - SESSION_SECRET=dev-secret-key-123
+      - BASE_URL=http://localhost:3000
+      - PORT=3000
+    depends_on:
+      - db
+    # On monte le code source pour que les modifications soient prises en compte (nécessite nodemon pour le reload, ou juste pour l'accès aux fichiers)
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  db:
+    image: postgres:15-alpine
+    container_name: nfc-review-dev-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=nfc_review
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_dev_data:

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — NFC Review Tracker</title>
+<link rel="stylesheet" href="/style.css">
+<!-- Chart.js for graphs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top-nav">
+    <div>
+      <div class="eyebrow"><span class="dot"></span>NFC REVIEW TRACKER</div>
+      <h1>My Cards</h1>
+    </div>
+    <div class="links">
+      <a href="/admin/bulk">+ Generate Bulk</a>
+      <a href="/admin/tags/new">+ Add Card</a>
+      <a href="/admin/print">Print Sheet</a>
+      <a href="/admin/logout">Logout</a>
+    </div>
+  </div>
+
+  <div class="filter-group">
+    <a href="?filter=24h" class="btn <%= currentFilter === '24h' ? '' : 'secondary' %>">24h</a>
+    <a href="?filter=yesterday" class="btn <%= currentFilter === 'yesterday' ? '' : 'secondary' %>">Yesterday</a>
+    <a href="?filter=week" class="btn <%= currentFilter === 'week' ? '' : 'secondary' %>">This Week</a>
+    <a href="?filter=all" class="btn <%= currentFilter === 'all' ? '' : 'secondary' %>">All Time</a>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat">
+      <div class="num"><%= totals.total_tags %></div>
+      <div class="label">Cards Created</div>
+    </div>
+    <div class="stat">
+      <div class="num"><%= totals.active_tags %></div>
+      <div class="label">Active Cards (Sold)</div>
+    </div>
+    <div class="stat">
+      <div class="num"><%= totals.total_scans %></div>
+      <div class="label">Total Scans (<%= currentFilterLabel %>)</div>
+    </div>
+    <div class="stat">
+      <div class="num"><%= new Intl.NumberFormat('id-ID').format(totals.total_revenue) %></div>
+      <div class="label">IDR Collected</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Scan Analytics</h2>
+    <canvas id="scansChart" width="400" height="150"></canvas>
+  </div>
+
+  <div class="panel">
+    <% if (tags.length === 0) { %>
+      <p class="sub" style="margin:0;">No cards yet. Generate a batch of codes or add a card manually.</p>
+    <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Business</th>
+          <th>Status</th>
+          <th>NFC</th>
+          <th>QR Code</th>
+          <th>Last Scan</th>
+          <th>Price</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% tags.forEach(t => { %>
+        <tr>
+          <td data-label="Code"><code><%= t.code %></code></td>
+          <td data-label="Business"><%= t.business_name || '—' %></td>
+          <td data-label="Status">
+            <% if (t.active) { %>
+              <span class="badge active">Active</span>
+            <% } else { %>
+              <span class="badge inactive">In Stock</span>
+            <% } %>
+          </td>
+          <td data-label="NFC"><%= t.nfc_count %></td>
+          <td data-label="QR Code"><%= t.qr_count %></td>
+          <td data-label="Last Scan"><%= t.last_scan ? new Date(t.last_scan).toLocaleDateString('en-US', { timeZone: 'Asia/Makassar' }) : '—' %></td>
+          <td data-label="Price"><%= t.price_paid ? new Intl.NumberFormat('id-ID').format(t.price_paid) + ' IDR' : '—' %></td>
+          <td data-label="Action"><a href="/admin/tags/<%= t.code %>" class="btn secondary">Manage</a></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } %>
+  </div>
+
+</div>
+
+<script>
+  // Setup Chart.js with dark mode colors
+  Chart.defaults.color = '#9a9ba3';
+  Chart.defaults.borderColor = '#33353f';
+  
+  const ctx = document.getElementById('scansChart').getContext('2d');
+  const chartData = <%- JSON.stringify(chartData) %>;
+  
+  const labels = chartData.map(d => d.date);
+  const nfcData = chartData.map(d => d.nfc);
+  const qrData = chartData.map(d => d.qr);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'NFC Scans',
+          data: nfcData,
+          borderColor: '#e8935c', // copper-bright
+          backgroundColor: 'rgba(232, 147, 92, 0.1)',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'QR Scans',
+          data: qrData,
+          borderColor: '#7fbf8f', // good
+          backgroundColor: 'rgba(127, 191, 143, 0.1)',
+          tension: 0.3,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: { position: 'top' }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+</script>
+
+<%- include('partials/bottom-nav', { navActive: 'home' }) %>
+
+</body>
+</html>

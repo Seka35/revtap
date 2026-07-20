@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="eyebrow" style="justify-content:center;"><span class="dot"></span>ADMIN</div>
+  <h1 style="text-align:center; margin-bottom:24px;">Connection</h1>
+
+  <% if (error) { %><div class="error"><%= error %></div><% } %>
+
+  <div class="panel">
+    <form method="POST" action="/admin/login">
+      <label for="password">Admin Password</label>
+      <input type="password" id="password" name="password" required autofocus>
+      <button class="btn" style="width:100%;" type="submit">Login</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= tag ? 'Edit Card' : 'Add Card' %> — NFC Review Tracker</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="top-nav">
+    <div class="links"><a href="/admin">← Back</a></div>
+  </div>
+
+  <div class="panel">
+    <div class="eyebrow"><span class="dot"></span><%= tag ? 'EDIT' : 'NEW' %></div>
+    <h1><%= tag ? 'Edit Card' : 'Add a Card' %></h1>
+    
+    <% if (error) { %><div class="error"><%= error %></div><% } %>
+
+    <form method="POST" action="<%= tag ? '/admin/tags/' + tag.code : '/admin/tags' %>">
+      <label for="code">Unique Code (printed on card)</label>
+      <input type="text" id="code" name="code" value="<%= tag ? tag.code : '' %>" <%= tag ? 'readonly' : 'required' %> placeholder="e.g., a1">
+
+      <label for="business_name">Business Name</label>
+      <input type="text" id="business_name" name="business_name" value="<%= tag ? tag.business_name || '' : '' %>" placeholder="e.g., Cafe Bali">
+
+      <!-- Google Place ID Assistant -->
+      <div style="background: rgba(201,123,74,0.05); border: 1px dashed var(--copper); padding: 12px; border-radius: 7px; margin-bottom: 14px;">
+        <label style="color: var(--copper); margin-bottom: 4px;">Google Review Link Generator</label>
+        <p style="font-size: 11px; color: var(--ink-dim); margin-top: 0; margin-bottom: 8px;">
+          Find your Place ID <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" style="color: var(--copper); text-decoration: underline;">here</a>, paste it below, and click Generate.
+        </p>
+        <div class="row" style="margin-bottom:0;">
+          <input type="text" id="place_id_helper" placeholder="ChIJ..." style="margin-bottom:0; flex:1;">
+          <button type="button" class="btn secondary" onclick="generateUrl()">Generate URL</button>
+        </div>
+      </div>
+
+      <label for="review_url">Google Review URL</label>
+      <input type="text" id="review_url" name="review_url" value="<%= tag ? tag.review_url || '' : '' %>" placeholder="https://search.google.com/local/writereview?placeid=...">
+
+      <label for="price_paid">Price Paid (IDR)</label>
+      <input type="number" id="price_paid" name="price_paid" value="<%= tag ? tag.price_paid || '' : '' %>" placeholder="100000">
+
+      <label for="client_whatsapp">Client WhatsApp Number (optional)</label>
+      <input type="text" id="client_whatsapp" name="client_whatsapp" value="<%= tag ? tag.client_whatsapp || '' : '' %>" placeholder="+628123456789">
+
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" rows="3" placeholder="Contact, address, remarks..."><%= tag ? tag.notes || '' : '' %></textarea>
+
+      <% if (tag) { %>
+      <div class="checkbox-row">
+        <input type="checkbox" id="active" name="active" <%= tag.active ? 'checked' : '' %>>
+        <label for="active" style="margin:0;">Active Card (sold and functional)</label>
+      </div>
+      <% } %>
+
+      <button class="btn" type="submit">Save</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function generateUrl() {
+  const placeId = document.getElementById('place_id_helper').value.trim();
+  if (placeId) {
+    document.getElementById('review_url').value = `https://search.google.com/local/writereview?placeid=${placeId}`;
+  }
+}
+</script>
+
+<%- include('partials/bottom-nav', { navActive: 'add' }) %>
+
+</body>
+</html>
