@@ -308,7 +308,20 @@ router.get('/tags/:code', async (req, res) => {
 
 router.post('/tags/:code', express.urlencoded({ extended: true }), async (req, res) => {
   const code = req.params.code.toLowerCase();
-  const { business_name, review_url, price_paid, notes, active, client_password, client_whatsapp, google_place_id } = req.body;
+  let { business_name, review_url, price_paid, notes, active, client_password, client_whatsapp, google_place_id } = req.body;
+
+  if (google_place_id) {
+    google_place_id = google_place_id.trim();
+    try {
+      const url = new URL(google_place_id);
+      const placeIdParam = url.searchParams.get('placeid') || url.searchParams.get('place_id');
+      if (placeIdParam) {
+        google_place_id = placeIdParam;
+      }
+    } catch (e) {
+      // Ignore URL parsing errors, keep the original string
+    }
+  }
 
   const { rows } = await pool.query('SELECT * FROM tags WHERE code = $1', [code]);
   const existing = rows[0];

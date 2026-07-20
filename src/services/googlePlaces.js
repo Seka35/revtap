@@ -6,8 +6,18 @@ async function fetchGooglePlaceData(placeId) {
     console.error('GOOGLE_PLACES_API_KEY is not defined.');
     return null;
   }
+  
+  let cleanPlaceId = placeId;
   try {
-    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=rating,user_ratings_total,reviews&key=${apiKey}`;
+    const url = new URL(placeId);
+    const idParam = url.searchParams.get('placeid') || url.searchParams.get('place_id');
+    if (idParam) cleanPlaceId = idParam;
+  } catch (e) {
+    // Not a URL, use as is
+  }
+  
+  try {
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${cleanPlaceId}&fields=rating,user_ratings_total,reviews&key=${apiKey}`;
     const response = await fetch(url);
     const data = await response.json();
     if (data.status === 'OK') {
