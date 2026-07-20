@@ -281,14 +281,18 @@ input:focus,textarea:focus{border-color:var(--copper);}
   border-radius: 20px; /* Arrondi extérieur */
   display: inline-block;
 }
-.qr-google-frame img {
+.qr-google-frame img,
+.qr-google-frame canvas,
+.qr-google-frame svg {
   display: block;
   border-radius: 12px; /* Arrondi intérieur (QR) */
   background: #fff;
   width: 150px;
   height: 150px;
 }
-.print-card .qr-google-frame img {
+.print-card .qr-google-frame img,
+.print-card .qr-google-frame canvas,
+.print-card .qr-google-frame svg {
   width: 100%;
   height: auto;
 }

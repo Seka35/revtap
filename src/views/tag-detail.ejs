@@ -120,10 +120,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 const qrCode = new QRCodeStyling({
-  width: 150,
-  height: 150,
+  width: 1000,
+  height: 1000,
   data: "<%= qrUrl %>",
-  margin: 2,
+  margin: 10,
   dotsOptions: { type: "rounded", color: "#000000" },
   cornersSquareOptions: { type: "extra-rounded", color: "#000000" },
   cornersDotOptions: { type: "dot", color: "#000000" },
@@ -133,8 +133,8 @@ qrCode.append(document.getElementById("qr-container"));
 
 function downloadQR() {
   const container = document.getElementById("qr-container");
-  // On capture le cadre entier (bordure + QR) en très haute qualité (scale: 4) avec fond transparent (null)
-  html2canvas(container, { backgroundColor: null, scale: 4 }).then(canvas => {
+  // On capture le cadre entier (bordure + QR) en très haute qualité (scale: 10)
+  html2canvas(container, { backgroundColor: null, scale: 10 }).then(canvas => {
     const link = document.createElement('a');
     link.download = "QR_<%= tag.code %>.png";
     link.href = canvas.toDataURL("image/png");

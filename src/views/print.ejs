@@ -37,10 +37,10 @@
 <script>
 document.querySelectorAll('.qr-google-frame[data-url]').forEach(container => {
   const qrCode = new QRCodeStyling({
-    width: 200,
-    height: 200,
+    width: 1000,
+    height: 1000,
     data: container.getAttribute('data-url'),
-    margin: 2,
+    margin: 10,
     dotsOptions: { type: "rounded", color: "#000000" },
     cornersSquareOptions: { type: "extra-rounded", color: "#000000" },
     cornersDotOptions: { type: "dot", color: "#000000" },
