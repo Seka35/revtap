@@ -225,22 +225,22 @@ input:focus,textarea:focus{border-color:var(--copper);}
   }
 
   /* Table to Cards */
-  table, thead, tbody, th, td, tr {
+  table:not(.heatmap-table), table:not(.heatmap-table) thead, table:not(.heatmap-table) tbody, table:not(.heatmap-table) th, table:not(.heatmap-table) td, table:not(.heatmap-table) tr {
     display: block;
   }
-  thead tr {
+  table:not(.heatmap-table) thead tr {
     position: absolute;
     top: -9999px;
     left: -9999px;
   }
-  tr {
+  table:not(.heatmap-table) tr {
     background: var(--bg-panel-2);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     margin-bottom: 16px;
     padding: 12px;
   }
-  td {
+  table:not(.heatmap-table) td {
     border: none;
     border-bottom: 1px dashed var(--line);
     position: relative;
@@ -249,10 +249,10 @@ input:focus,textarea:focus{border-color:var(--copper);}
     padding-top: 10px;
     padding-bottom: 10px;
   }
-  td:last-child {
+  table:not(.heatmap-table) td:last-child {
     border-bottom: 0;
   }
-  td::before {
+  table:not(.heatmap-table) td::before {
     content: attr(data-label);
     position: absolute;
     left: 12px;
