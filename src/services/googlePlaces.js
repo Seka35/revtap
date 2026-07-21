@@ -64,7 +64,7 @@ async function updateTagGoogleData(code, placeId) {
 
 async function runDailyJob() {
   console.log('Starting daily Google Places data fetch...');
-  const { rows: tags } = await pool.query(`SELECT code, google_place_id FROM tags WHERE active = true AND google_place_id IS NOT NULL`);
+  const { rows: tags } = await pool.query(`SELECT code, google_place_id FROM tags WHERE active = true AND google_sync = true AND google_place_id IS NOT NULL`);
   for (const tag of tags) {
     console.log(`Fetching data for ${tag.code}...`);
     await updateTagGoogleData(tag.code, tag.google_place_id);

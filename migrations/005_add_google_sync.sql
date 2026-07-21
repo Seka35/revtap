@@ -1,0 +1,1 @@
+ALTER TABLE tags ADD COLUMN google_sync BOOLEAN DEFAULT true;

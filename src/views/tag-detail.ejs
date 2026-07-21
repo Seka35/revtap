@@ -29,13 +29,24 @@
 
       <!-- Google Place ID Assistant -->
       <div style="background: rgba(201,123,74,0.05); border: 1px dashed var(--copper); padding: 12px; border-radius: 7px; margin-bottom: 14px;">
-        <label style="color: var(--copper); margin-bottom: 4px;">Google Review Link Generator</label>
+        <label style="color: var(--copper); margin-bottom: 4px;">Recherche de Commerce (Place ID Assistant)</label>
         <p style="font-size: 11px; color: var(--ink-dim); margin-top: 0; margin-bottom: 8px;">
-          Find your Place ID <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" style="color: var(--copper); text-decoration: underline;">here</a>, paste it below, and click Generate.
+          Recherchez directement le nom du commerce pour trouver son Place ID, ou trouvez-le manuellement <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" style="color: var(--copper); text-decoration: underline;">ici</a> en cas de problème.
         </p>
+        
+        <div class="row" style="margin-bottom:8px;">
+          <input type="text" id="place_search" placeholder="Ex: Pepito Market Canggu" style="margin-bottom:0; flex:1;" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); searchPlace(); }">
+          <button type="button" class="btn secondary" onclick="searchPlace()">Chercher</button>
+        </div>
+        <div id="search_results" style="margin-bottom: 12px; font-size: 13px;"></div>
+
         <div class="row" style="margin-bottom:0;">
           <input type="text" id="google_place_id" name="google_place_id" value="<%= tag.google_place_id || '' %>" placeholder="ChIJ..." style="margin-bottom:0; flex:1;">
-          <button type="button" class="btn secondary" onclick="generateUrl()">Generate URL</button>
+          <button type="button" class="btn secondary" onclick="generateUrl()">Générer URL Google</button>
+        </div>
+        <div class="checkbox-row" style="margin-top: 10px;">
+          <input type="checkbox" id="google_sync" name="google_sync" <%= tag.google_sync ? 'checked' : '' %>>
+          <label for="google_sync" style="margin:0; font-size: 12px; color: var(--ink-dim);">Activer la synchronisation automatique (CRON)</label>
         </div>
       </div>
 
@@ -78,6 +89,7 @@
       <input type="hidden" name="client_whatsapp" value="<%= tag.client_whatsapp || '' %>">
       <input type="hidden" name="notes" value="<%= tag.notes || '' %>">
       <input type="hidden" name="google_place_id" value="<%= tag.google_place_id || '' %>">
+      <% if (tag.google_sync) { %><input type="hidden" name="google_sync" value="on"><% } %>
       <% if (tag.active) { %><input type="hidden" name="active" value="on"><% } %>
 
       <label for="client_password">Client Password</label>
@@ -115,6 +127,33 @@
         <% if (reviewGrowth > 0) { %>+<b><%= reviewGrowth %></b> new reviews<% } %>
         <% if (ratingGrowth > 0 && reviewGrowth > 0) { %> & <% } %>
         <% if (ratingGrowth > 0) { %>rating went up by <b>+<%= ratingGrowth %></b><% } %>
+      </div>
+    </div>
+    <% } %>
+    
+    <% if (latestReviews && latestReviews.length > 0) { %>
+    <div style="flex: 100%; margin-top: 16px; border-top: 1px solid rgba(232, 147, 92, 0.2); padding-top: 16px;">
+      <h3 style="color: var(--copper-bright); font-size: 14px; margin-bottom: 12px;">Derniers Avis</h3>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <% latestReviews.forEach(r => { %>
+          <div style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px 12px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <% if (r.profile_photo_url) { %>
+                <img src="<%= r.profile_photo_url %>" alt="<%= r.author_name %>" style="width: 24px; height: 24px; border-radius: 50%;">
+              <% } else { %>
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--copper); display: flex; align-items: center; justify-content: center; color: #000; font-size: 10px; font-weight: bold;"><%= r.author_name ? r.author_name.charAt(0) : '?' %></div>
+              <% } %>
+              <strong style="color: white; font-size: 13px;"><%= r.author_name %></strong>
+              <span style="color: #FFD700; font-size: 11px;">
+                <% for (let i = 0; i < r.rating; i++) { %>★<% } %>
+              </span>
+              <span style="color: var(--ink-faint); font-size: 11px; margin-left: auto;">
+                <%= new Date(r.time * 1000).toLocaleDateString() %>
+              </span>
+            </div>
+            <p style="color: var(--ink-dim); font-size: 13px; margin: 0; line-height: 1.4;"><%= r.text || 'Pas de commentaire.' %></p>
+          </div>
+        <% }) %>
       </div>
     </div>
     <% } %>
@@ -320,6 +359,49 @@ function downloadQR() {
 </script>
 
 <script>
+async function searchPlace() {
+  const q = document.getElementById('place_search').value.trim();
+  const resDiv = document.getElementById('search_results');
+  if (!q) return;
+  resDiv.innerHTML = '<span style="color:var(--ink-faint);">Recherche en cours...</span>';
+  try {
+    const res = await fetch('/admin/api/places/search?q=' + encodeURIComponent(q));
+    const data = await res.json();
+    if (data.length === 0) {
+      resDiv.innerHTML = '<span style="color:var(--bad);">Aucun résultat trouvé.</span>';
+      return;
+    }
+    let html = '<ul style="list-style:none; padding:0; margin:0; border: 1px solid var(--border); border-radius: 4px; max-height: 200px; overflow-y: auto;">';
+    data.forEach(place => {
+      // Échapper les quotes pour éviter de casser le onclick
+      const safeId = place.place_id.replace(/'/g, "\\'");
+      const safeName = place.name.replace(/'/g, "\\'");
+      const safeAddr = place.formatted_address.replace(/'/g, "\\'");
+      html += `<li style="padding: 8px; border-bottom: 1px solid var(--border); cursor: pointer;" onclick="selectPlace('${safeId}', '${safeName} ${safeAddr}')" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+        <strong style="color: white; display: block;">${place.name}</strong>
+        <span style="color: var(--ink-dim); font-size: 11px;">${place.formatted_address}</span>
+      </li>`;
+    });
+    html += '</ul>';
+    resDiv.innerHTML = html;
+  } catch(e) {
+    resDiv.innerHTML = '<span style="color:var(--bad);">Erreur lors de la recherche.</span>';
+  }
+}
+
+function selectPlace(placeId, addressQuery) {
+  document.getElementById('google_place_id').value = placeId;
+  const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(addressQuery)}&output=embed`;
+  
+  document.getElementById('search_results').innerHTML = `
+    <div style="background: rgba(127,191,143,0.1); border: 1px solid var(--good); padding: 10px; border-radius: 6px; margin-bottom: 10px;">
+      <span style="color:var(--good); font-weight: bold; display:block; margin-bottom:4px;">✅ Place ID sélectionné !</span>
+      <span style="color:var(--ink); font-size: 12px;">Vérifiez sur la carte ci-dessous, puis cliquez sur <b>"Générer URL Google"</b> ou sur le bouton "Save" en bas.</span>
+    </div>
+    <iframe width="100%" height="200" style="border:0; border-radius: 6px;" loading="lazy" allowfullscreen src="${mapUrl}"></iframe>
+  `;
+}
+
 function generateUrl() {
   const placeId = document.getElementById('google_place_id').value.trim();
   if (placeId) {

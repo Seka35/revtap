@@ -324,7 +324,7 @@ router.get('/tags/:code', async (req, res) => {
 
 router.post('/tags/:code', express.urlencoded({ extended: true }), async (req, res) => {
   const code = req.params.code.toLowerCase();
-  let { business_name, review_url, price_paid, notes, active, client_password, client_whatsapp, google_place_id } = req.body;
+  let { business_name, review_url, price_paid, notes, active, client_password, client_whatsapp, google_place_id, google_sync } = req.body;
 
   if (google_place_id) {
     google_place_id = google_place_id.trim();
@@ -355,6 +355,7 @@ router.post('/tags/:code', express.urlencoded({ extended: true }), async (req, r
   const existing = rows[0];
   const wasActive = existing && existing.active;
   const nowActive = !!active;
+  const nowSync = !!google_sync;
 
   await pool.query(
     `UPDATE tags SET
@@ -366,7 +367,8 @@ router.post('/tags/:code', express.urlencoded({ extended: true }), async (req, r
       sold_at = CASE WHEN $5 AND NOT $6 THEN now() ELSE sold_at END,
       client_password = $7,
       client_whatsapp = $8,
-      google_place_id = $9
+      google_place_id = $9,
+      google_sync = $11
      WHERE code = $10`,
     [
       business_name || null,
@@ -378,7 +380,8 @@ router.post('/tags/:code', express.urlencoded({ extended: true }), async (req, r
       client_password || null,
       client_whatsapp || null,
       google_place_id || null,
-      code
+      code,
+      nowSync
     ]
   );
 
