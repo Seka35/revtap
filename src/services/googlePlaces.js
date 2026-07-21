@@ -36,29 +36,17 @@ async function searchPlaces(query) {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) return [];
   try {
-    const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': apiKey,
-        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress'
-      },
-      body: JSON.stringify({ textQuery: query })
-    });
-
-    if (!response.ok) {
-      console.error('Google Places API Error:', response.status, await response.text());
-      return [];
-    }
-
+    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
+    const response = await fetch(url);
     const data = await response.json();
-    if (data.places && data.places.length > 0) {
-      return data.places.map(p => ({
-        place_id: p.id,
-        name: p.displayName ? p.displayName.text : '',
-        formatted_address: p.formattedAddress
+    if (data.status === 'OK') {
+      return data.results.map(r => ({
+        place_id: r.place_id,
+        name: r.name,
+        formatted_address: r.formatted_address
       }));
     }
+    console.error('Google API Error:', data.status, data.error_message);
     return [];
   } catch (err) {
     console.error('Search places error:', err);
