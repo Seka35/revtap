@@ -339,6 +339,18 @@ router.post('/tags/:code', express.urlencoded({ extended: true }), async (req, r
     }
   }
 
+  if (!google_place_id && review_url) {
+    try {
+      const url = new URL(review_url);
+      const placeIdParam = url.searchParams.get('placeid') || url.searchParams.get('place_id');
+      if (placeIdParam) {
+        google_place_id = placeIdParam;
+      }
+    } catch (e) {
+      // Ignore URL parsing errors
+    }
+  }
+
   const { rows } = await pool.query('SELECT * FROM tags WHERE code = $1', [code]);
   const existing = rows[0];
   const wasActive = existing && existing.active;
