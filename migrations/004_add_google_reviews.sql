@@ -1,4 +1,4 @@
-ALTER TABLE tags ADD COLUMN google_place_id TEXT;
+ALTER TABLE tags ADD COLUMN IF NOT EXISTS google_place_id TEXT;
 
 CREATE TABLE IF NOT EXISTS google_reviews_history (
   id SERIAL PRIMARY KEY,
