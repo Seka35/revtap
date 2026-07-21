@@ -32,6 +32,40 @@ async function fetchGooglePlaceData(placeId) {
   }
 }
 
+async function searchPlaces(query) {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) return [];
+  try {
+    const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress'
+      },
+      body: JSON.stringify({ textQuery: query })
+    });
+
+    if (!response.ok) {
+      console.error('Google Places API Error:', response.status, await response.text());
+      return [];
+    }
+
+    const data = await response.json();
+    if (data.places && data.places.length > 0) {
+      return data.places.map(p => ({
+        place_id: p.id,
+        name: p.displayName ? p.displayName.text : '',
+        formatted_address: p.formattedAddress
+      }));
+    }
+    return [];
+  } catch (err) {
+    console.error('Search places error:', err);
+    return [];
+  }
+}
+
 async function updateTagGoogleData(code, placeId) {
   const result = await fetchGooglePlaceData(placeId);
   if (!result) return false;
@@ -77,5 +111,6 @@ async function runDailyJob() {
 module.exports = {
   fetchGooglePlaceData,
   updateTagGoogleData,
-  runDailyJob
+  runDailyJob,
+  searchPlaces
 };

@@ -488,11 +488,16 @@ router.post('/tags/:code/mockup', async (req, res) => {
 });
 
 router.get('/api/places/search', async (req, res) => {
-  const googlePlaces = require('../services/googlePlaces');
-  const q = req.query.q;
-  if (!q) return res.json([]);
-  const results = await googlePlaces.searchPlaces(q);
-  res.json(results);
+  try {
+    const googlePlaces = require('../services/googlePlaces');
+    const q = req.query.q;
+    if (!q) return res.json([]);
+    const results = await googlePlaces.searchPlaces(q);
+    res.json(results);
+  } catch (err) {
+    console.error('Route /api/places/search error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 module.exports = router;
