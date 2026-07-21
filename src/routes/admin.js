@@ -500,4 +500,111 @@ router.get('/api/places/search', async (req, res) => {
   }
 });
 
+// ---------- Prospecting ----------
+
+router.get('/prospects', async (req, res) => {
+  const filter = req.query.filter || 'all';
+  let statusFilter = '';
+  if (filter !== 'all') {
+    statusFilter = `WHERE status = '${filter}'`;
+  }
+
+  const { rows: prospects } = await pool.query(`
+    SELECT * FROM prospects 
+    ${statusFilter} 
+    ORDER BY 
+      CASE WHEN next_action_date IS NULL THEN 1 ELSE 0 END,
+      next_action_date ASC, 
+      created_at DESC
+  `);
+
+  const { rows: statsData } = await pool.query(`
+    SELECT 
+      COUNT(*) AS total,
+      COUNT(*) FILTER (WHERE status = 'closed') AS closed,
+      COUNT(*) FILTER (WHERE status = 'follow_up' AND next_action_date <= CURRENT_DATE) AS followUpsToday
+    FROM prospects
+  `);
+
+  const stats = {
+    total: parseInt(statsData[0].total) || 0,
+    closed: parseInt(statsData[0].closed) || 0,
+    followUpsToday: parseInt(statsData[0].followupstoday) || 0
+  };
+
+  res.render('prospects', { prospects, stats, currentFilter: filter });
+});
+
+router.get('/prospects/new', (req, res) => {
+  res.render('prospect-detail', { prospect: {} });
+});
+
+router.post('/prospects', express.urlencoded({ extended: true }), async (req, res) => {
+  const { business_name, address, status, next_action_date, notes, assigned_card_code } = req.body;
+  try {
+    await pool.query(
+      `INSERT INTO prospects (business_name, address, status, next_action_date, notes, assigned_card_code)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        business_name,
+        address || null,
+        status || 'to_visit',
+        next_action_date || null,
+        notes || null,
+        assigned_card_code || null
+      ]
+    );
+    res.redirect('/admin/prospects');
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/prospects');
+  }
+});
+
+router.get('/prospects/:id', async (req, res) => {
+  if (req.params.id === 'new') return; // handled above
+  const { rows } = await pool.query(`SELECT * FROM prospects WHERE id = $1`, [req.params.id]);
+  if (rows.length === 0) return res.redirect('/admin/prospects');
+  res.render('prospect-detail', { prospect: rows[0] });
+});
+
+router.post('/prospects/:id', express.urlencoded({ extended: true }), async (req, res) => {
+  const { business_name, address, status, next_action_date, notes, assigned_card_code } = req.body;
+  try {
+    await pool.query(
+      `UPDATE prospects SET
+        business_name = $1,
+        address = $2,
+        status = $3,
+        next_action_date = $4,
+        notes = $5,
+        assigned_card_code = $6,
+        updated_at = now()
+       WHERE id = $7`,
+      [
+        business_name,
+        address || null,
+        status || 'to_visit',
+        next_action_date || null,
+        notes || null,
+        assigned_card_code || null,
+        req.params.id
+      ]
+    );
+    res.redirect('/admin/prospects');
+  } catch (err) {
+    console.error(err);
+    res.redirect(`/admin/prospects/${req.params.id}`);
+  }
+});
+
+router.post('/prospects/:id/delete', async (req, res) => {
+  try {
+    await pool.query(`DELETE FROM prospects WHERE id = $1`, [req.params.id]);
+  } catch (err) {
+    console.error(err);
+  }
+  res.redirect('/admin/prospects');
+});
+
 module.exports = router;

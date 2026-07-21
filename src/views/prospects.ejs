@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prospecting — NFC Review Tracker</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top-nav">
+    <div>
+      <div class="eyebrow"><span class="dot"></span>NFC REVIEW TRACKER</div>
+      <h1>Prospecting</h1>
+    </div>
+    <div class="links">
+      <a href="/admin">My Cards</a>
+      <a href="/admin/prospects/new">+ Add Prospect</a>
+      <a href="/admin/logout">Logout</a>
+    </div>
+  </div>
+
+  <div class="filter-group">
+    <a href="?filter=all" class="btn <%= currentFilter === 'all' ? '' : 'secondary' %>">All</a>
+    <a href="?filter=to_visit" class="btn <%= currentFilter === 'to_visit' ? '' : 'secondary' %>">To Visit</a>
+    <a href="?filter=follow_up" class="btn <%= currentFilter === 'follow_up' ? '' : 'secondary' %>">Follow Ups</a>
+    <a href="?filter=closed" class="btn <%= currentFilter === 'closed' ? '' : 'secondary' %>">Closed</a>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat">
+      <div class="num"><%= stats.total %></div>
+      <div class="label">Total Prospects</div>
+    </div>
+    <div class="stat">
+      <div class="num"><%= stats.followUpsToday %></div>
+      <div class="label">Follow Ups Today (or Past)</div>
+    </div>
+    <div class="stat">
+      <div class="num"><%= stats.closed %></div>
+      <div class="label">Closed Deals</div>
+    </div>
+    <div class="stat">
+      <div class="num"><%= stats.total > 0 ? Math.round((stats.closed / stats.total) * 100) : 0 %>%</div>
+      <div class="label">Closing Rate</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <% if (prospects.length === 0) { %>
+      <p class="sub" style="margin:0;">No prospects found in this category.</p>
+    <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Business Name</th>
+          <th>Status</th>
+          <th>Next Action Date</th>
+          <th>Assigned Card</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% prospects.forEach(p => { %>
+        <tr>
+          <td data-label="Business"><%= p.business_name %></td>
+          <td data-label="Status">
+            <% if (p.status === 'to_visit') { %>
+              <span class="badge" style="background: rgba(200,200,200,0.1); color: #ccc;">To Visit</span>
+            <% } else if (p.status === 'follow_up') { %>
+              <span class="badge" style="background: rgba(255,165,0,0.1); color: orange;">Follow Up</span>
+            <% } else if (p.status === 'not_interested') { %>
+              <span class="badge inactive">Not Interested</span>
+            <% } else if (p.status === 'closed') { %>
+              <span class="badge active">Closed</span>
+            <% } %>
+          </td>
+          <td data-label="Next Action">
+            <% if (p.next_action_date) { %>
+              <% 
+                const date = new Date(p.next_action_date);
+                const isPast = date < new Date(new Date().setHours(0,0,0,0));
+                const isToday = date.toDateString() === new Date().toDateString();
+              %>
+              <span style="color: <%= isPast ? 'var(--bad)' : (isToday ? 'orange' : 'var(--ink)') %>;">
+                <%= date.toLocaleDateString('en-US', { timeZone: 'Asia/Makassar' }) %>
+                <%= isToday ? '(Today)' : '' %>
+              </span>
+            <% } else { %>
+              <span style="color:var(--ink-faint);">—</span>
+            <% } %>
+          </td>
+          <td data-label="Card">
+            <% if (p.assigned_card_code) { %>
+              <a href="/admin/tags/<%= p.assigned_card_code %>" style="color: var(--copper); text-decoration: underline;"><%= p.assigned_card_code %></a>
+            <% } else { %>
+              <span style="color:var(--ink-faint);">—</span>
+            <% } %>
+          </td>
+          <td data-label="Action"><a href="/admin/prospects/<%= p.id %>" class="btn secondary">Manage</a></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } %>
+  </div>
+
+</div>
+</body>
+</html>

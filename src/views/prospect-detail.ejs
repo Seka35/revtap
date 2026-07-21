@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= prospect.id ? 'Edit' : 'Add' %> Prospect — NFC Review Tracker</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap" style="max-width: 600px;">
+  
+  <div class="top-nav">
+    <a href="/admin/prospects" class="btn secondary" style="margin-bottom: 20px;">&larr; Back to Prospects</a>
+  </div>
+
+  <form class="panel" method="POST" action="/admin/prospects<%= prospect.id ? '/' + prospect.id : '' %>">
+    <div class="eyebrow" style="margin-bottom: 16px;"><span class="dot"></span>PROSPECT DETAILS</div>
+
+    <label>Business Name</label>
+    <input type="text" name="business_name" required value="<%= prospect.business_name || '' %>">
+
+    <label>Address / Location</label>
+    <input type="text" name="address" value="<%= prospect.address || '' %>" placeholder="e.g. JL. Petitenget No. 12">
+
+    <label>Status</label>
+    <select name="status" style="width:100%; padding: 12px; margin-bottom: 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: white; border-radius: 6px;">
+      <option value="to_visit" <%= prospect.status === 'to_visit' ? 'selected' : '' %>>To Visit (À démarcher)</option>
+      <option value="follow_up" <%= prospect.status === 'follow_up' ? 'selected' : '' %>>Follow Up (À relancer)</option>
+      <option value="not_interested" <%= prospect.status === 'not_interested' ? 'selected' : '' %>>Not Interested (Pas intéressé)</option>
+      <option value="closed" <%= prospect.status === 'closed' ? 'selected' : '' %>>Closed / Won (Signé)</option>
+    </select>
+
+    <label>Next Action Date (e.g. Come back tomorrow)</label>
+    <input type="date" name="next_action_date" value="<%= prospect.next_action_date ? prospect.next_action_date.toISOString().split('T')[0] : '' %>">
+
+    <label>Notes</label>
+    <textarea name="notes" rows="5" placeholder="Spoke to manager, asked to come back on Monday..."><%= prospect.notes || '' %></textarea>
+
+    <label>Assign to an existing Card Code (if Closed)</label>
+    <input type="text" name="assigned_card_code" value="<%= prospect.assigned_card_code || '' %>" placeholder="e.g. a1">
+    <p style="font-size: 11px; color: var(--ink-dim); margin-top: -12px; margin-bottom: 20px;">If this prospect bought a card, enter the card code here (e.g. a1) so you can track it.</p>
+
+    <button type="submit" class="btn" style="width:100%; margin-bottom: 10px;">Save Prospect</button>
+  </form>
+
+  <% if (prospect.id) { %>
+    <form method="POST" action="/admin/prospects/<%= prospect.id %>/delete" style="text-align: right; margin-top: 20px;" onsubmit="return confirm('Are you sure you want to delete this prospect?');">
+      <button type="submit" class="btn secondary" style="border-color: var(--bad); color: var(--bad);">Delete Prospect</button>
+    </form>
+  <% } %>
+
+</div>
+</body>
+</html>
