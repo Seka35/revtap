@@ -22,6 +22,7 @@
   </div>
 
   <div class="filter-group">
+    <a href="/admin/prospects/new" class="btn no-desktop" style="background: var(--copper); color: #1a1206; margin-right: 12px; font-weight: bold;">+ Add</a>
     <a href="?filter=all" class="btn <%= currentFilter === 'all' ? '' : 'secondary' %>">All</a>
     <a href="?filter=to_visit" class="btn <%= currentFilter === 'to_visit' ? '' : 'secondary' %>">To Visit</a>
     <a href="?filter=follow_up" class="btn <%= currentFilter === 'follow_up' ? '' : 'secondary' %>">Follow Ups</a>
@@ -107,5 +108,8 @@
   </div>
 
 </div>
+
+<%- include('partials/bottom-nav', { navActive: 'prospects' }) %>
+
 </body>
 </html>

@@ -186,6 +186,9 @@ input:focus,textarea:focus{border-color:var(--copper);}
 .bottom-nav {
   display: none;
 }
+.no-desktop {
+  display: none !important;
+}
 
 @media (max-width: 700px) {
   body {
@@ -194,6 +197,10 @@ input:focus,textarea:focus{border-color:var(--copper);}
 
   .top-nav .links {
     display: none; /* Hidden on mobile in favor of bottom nav */
+  }
+
+  .no-desktop {
+    display: inline-flex !important;
   }
 
   /* Bottom Navigation Bar */
