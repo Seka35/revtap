@@ -487,4 +487,12 @@ router.post('/tags/:code/mockup', async (req, res) => {
   res.redirect(`/admin/tags/${code}`);
 });
 
+router.get('/api/places/search', async (req, res) => {
+  const googlePlaces = require('../services/googlePlaces');
+  const q = req.query.q;
+  if (!q) return res.json([]);
+  const results = await googlePlaces.searchPlaces(q);
+  res.json(results);
+});
+
 module.exports = router;

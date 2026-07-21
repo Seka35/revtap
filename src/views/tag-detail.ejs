@@ -29,24 +29,24 @@
 
       <!-- Google Place ID Assistant -->
       <div style="background: rgba(201,123,74,0.05); border: 1px dashed var(--copper); padding: 12px; border-radius: 7px; margin-bottom: 14px;">
-        <label style="color: var(--copper); margin-bottom: 4px;">Recherche de Commerce (Place ID Assistant)</label>
+        <label style="color: var(--copper); margin-bottom: 4px;">Business Search (Place ID Assistant)</label>
         <p style="font-size: 11px; color: var(--ink-dim); margin-top: 0; margin-bottom: 8px;">
-          Recherchez directement le nom du commerce pour trouver son Place ID, ou trouvez-le manuellement <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" style="color: var(--copper); text-decoration: underline;">ici</a> en cas de problème.
+          Search directly for the business name to find its Place ID, or find it manually <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" style="color: var(--copper); text-decoration: underline;">here</a> in case of issues.
         </p>
         
         <div class="row" style="margin-bottom:8px;">
           <input type="text" id="place_search" placeholder="Ex: Pepito Market Canggu" style="margin-bottom:0; flex:1;" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); searchPlace(); }">
-          <button type="button" class="btn secondary" onclick="searchPlace()">Chercher</button>
+          <button type="button" class="btn secondary" onclick="searchPlace()">Search</button>
         </div>
         <div id="search_results" style="margin-bottom: 12px; font-size: 13px;"></div>
 
         <div class="row" style="margin-bottom:0;">
           <input type="text" id="google_place_id" name="google_place_id" value="<%= tag.google_place_id || '' %>" placeholder="ChIJ..." style="margin-bottom:0; flex:1;">
-          <button type="button" class="btn secondary" onclick="generateUrl()">Générer URL Google</button>
+          <button type="button" class="btn secondary" onclick="generateUrl()">Generate Google URL</button>
         </div>
         <div class="checkbox-row" style="margin-top: 10px;">
           <input type="checkbox" id="google_sync" name="google_sync" <%= tag.google_sync ? 'checked' : '' %>>
-          <label for="google_sync" style="margin:0; font-size: 12px; color: var(--ink-dim);">Activer la synchronisation automatique (CRON)</label>
+          <label for="google_sync" style="margin:0; font-size: 12px; color: var(--ink-dim);">Enable automatic synchronization (CRON)</label>
         </div>
       </div>
 
@@ -133,7 +133,7 @@
     
     <% if (latestReviews && latestReviews.length > 0) { %>
     <div style="flex: 100%; margin-top: 16px; border-top: 1px solid rgba(232, 147, 92, 0.2); padding-top: 16px;">
-      <h3 style="color: var(--copper-bright); font-size: 14px; margin-bottom: 12px;">Derniers Avis</h3>
+      <h3 style="color: var(--copper-bright); font-size: 14px; margin-bottom: 12px;">Latest Reviews</h3>
       <div style="display: flex; flex-direction: column; gap: 12px;">
         <% latestReviews.forEach(r => { %>
           <div style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px 12px;">
@@ -151,7 +151,7 @@
                 <%= new Date(r.time * 1000).toLocaleDateString() %>
               </span>
             </div>
-            <p style="color: var(--ink-dim); font-size: 13px; margin: 0; line-height: 1.4;"><%= r.text || 'Pas de commentaire.' %></p>
+            <p style="color: var(--ink-dim); font-size: 13px; margin: 0; line-height: 1.4;"><%= r.text || 'No comment.' %></p>
           </div>
         <% }) %>
       </div>
@@ -363,12 +363,12 @@ async function searchPlace() {
   const q = document.getElementById('place_search').value.trim();
   const resDiv = document.getElementById('search_results');
   if (!q) return;
-  resDiv.innerHTML = '<span style="color:var(--ink-faint);">Recherche en cours...</span>';
+  resDiv.innerHTML = '<span style="color:var(--ink-faint);">Searching...</span>';
   try {
     const res = await fetch('/admin/api/places/search?q=' + encodeURIComponent(q));
     const data = await res.json();
     if (data.length === 0) {
-      resDiv.innerHTML = '<span style="color:var(--bad);">Aucun résultat trouvé.</span>';
+      resDiv.innerHTML = '<span style="color:var(--bad);">No results found.</span>';
       return;
     }
     let html = '<ul style="list-style:none; padding:0; margin:0; border: 1px solid var(--border); border-radius: 4px; max-height: 200px; overflow-y: auto;">';
@@ -385,7 +385,7 @@ async function searchPlace() {
     html += '</ul>';
     resDiv.innerHTML = html;
   } catch(e) {
-    resDiv.innerHTML = '<span style="color:var(--bad);">Erreur lors de la recherche.</span>';
+    resDiv.innerHTML = '<span style="color:var(--bad);">Search error.</span>';
   }
 }
 
@@ -395,8 +395,8 @@ function selectPlace(placeId, addressQuery) {
   
   document.getElementById('search_results').innerHTML = `
     <div style="background: rgba(127,191,143,0.1); border: 1px solid var(--good); padding: 10px; border-radius: 6px; margin-bottom: 10px;">
-      <span style="color:var(--good); font-weight: bold; display:block; margin-bottom:4px;">✅ Place ID sélectionné !</span>
-      <span style="color:var(--ink); font-size: 12px;">Vérifiez sur la carte ci-dessous, puis cliquez sur <b>"Générer URL Google"</b> ou sur le bouton "Save" en bas.</span>
+      <span style="color:var(--good); font-weight: bold; display:block; margin-bottom:4px;">✅ Place ID selected!</span>
+      <span style="color:var(--ink); font-size: 12px;">Verify on the map below, then click <b>"Generate Google URL"</b> or "Save" at the bottom.</span>
     </div>
     <iframe width="100%" height="200" style="border:0; border-radius: 6px;" loading="lazy" allowfullscreen src="${mapUrl}"></iframe>
   `;
