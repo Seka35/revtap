@@ -42,7 +42,9 @@
       </h2>
       <div style="font-size: 32px; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px;">
         <%= rating %>
-        <div style="color: #FFD700; font-size: 24px;">★★★★★</div>
+        <div class="stars-container">
+          <div class="stars-fill" style="width: <%= (rating / 5) * 100 %>%"></div>
+        </div>
       </div>
       <div style="color: var(--ink-dim); font-size: 13px;">Based on <%= reviewCount %> authentic reviews</div>
     </div>

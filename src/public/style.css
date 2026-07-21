@@ -276,6 +276,29 @@ input:focus,textarea:focus{border-color:var(--copper);}
   }
 }
 
+/* --- STARS STYLING --- */
+.stars-container {
+  display: inline-block;
+  position: relative;
+  font-size: 24px;
+  color: var(--line); /* empty star color */
+  line-height: 1;
+}
+.stars-container::before {
+  content: "★★★★★";
+}
+.stars-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  color: #FFD700; /* filled star color */
+}
+.stars-fill::before {
+  content: "★★★★★";
+}
+
 /* --- GOOGLE QR CODE STYLING --- */
 .qr-google-frame {
   background: conic-gradient(

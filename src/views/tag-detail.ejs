@@ -115,7 +115,10 @@
         Google Reviews <span style="font-size: 11px; padding: 2px 6px; background: var(--copper); color: #000; border-radius: 4px; font-weight: 600;">LIVE</span>
       </h2>
       <div style="font-size: 32px; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px;">
-        <%= rating %> <div style="color: #FFD700; font-size: 24px;">★★★★★</div>
+        <%= rating %>
+        <div class="stars-container">
+          <div class="stars-fill" style="width: <%= (rating / 5) * 100 %>%"></div>
+        </div>
       </div>
       <div style="color: var(--ink-dim); font-size: 13px;">Based on <%= reviewCount %> authentic reviews</div>
     </div>
