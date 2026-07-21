@@ -93,6 +93,18 @@
         <% }) %>
       </tbody>
     </table>
+    
+    <% if (totalPages > 1) { %>
+    <div style="margin-top: 14px; display: flex; gap: 8px; align-items: center;">
+      <% if (page > 1) { %>
+        <a href="?filter=<%= currentFilter %>&page=<%= page - 1 %>" class="btn secondary" style="padding: 4px 10px; font-size: 12px;">← Prev</a>
+      <% } %>
+      <span style="font-size: 13px; color: var(--ink); padding: 4px;">Page <%= page %> of <%= totalPages %></span>
+      <% if (page < totalPages) { %>
+        <a href="?filter=<%= currentFilter %>&page=<%= page + 1 %>" class="btn secondary" style="padding: 4px 10px; font-size: 12px;">Next →</a>
+      <% } %>
+    </div>
+    <% } %>
     <% } %>
   </div>
 

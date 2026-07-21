@@ -39,6 +39,9 @@ router.use(requireAuth);
 
 router.get('/', async (req, res) => {
   const filter = req.query.filter || 'all';
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  const offset = (page - 1) * limit;
   let dateFilterStr = '';
   let currentFilterLabel = 'All Time';
   let groupBy = "TO_CHAR(scanned_at AT TIME ZONE 'Asia/Makassar', 'YYYY-MM-DD')";
@@ -72,7 +75,8 @@ router.get('/', async (req, res) => {
       GROUP BY code
     ) s ON s.code = t.code
     ORDER BY t.created_at ASC
-  `);
+    LIMIT $1 OFFSET $2
+  `, [limit, offset]);
 
   const { rows: totals } = await pool.query(`
     SELECT
@@ -99,13 +103,18 @@ router.get('/', async (req, res) => {
     qr: parseInt(r.qr, 10)
   }));
 
+  const totalTagsCount = parseInt(totals[0].total_tags, 10);
+  const totalPages = Math.ceil(totalTagsCount / limit) || 1;
+
   res.render('dashboard', { 
     tags, 
     totals: totals[0], 
     baseUrl: process.env.BASE_URL,
     currentFilter: filter,
     currentFilterLabel,
-    chartData
+    chartData,
+    page,
+    totalPages
   });
 });
 
