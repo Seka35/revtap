@@ -36,14 +36,14 @@ async function searchPlaces(query) {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) return [];
   try {
-    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
+    const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&key=${apiKey}`;
     const response = await fetch(url);
     const data = await response.json();
     if (data.status === 'OK') {
-      return data.results.map(r => ({
-        place_id: r.place_id,
-        name: r.name,
-        formatted_address: r.formatted_address
+      return data.predictions.map(p => ({
+        place_id: p.place_id,
+        name: p.structured_formatting ? p.structured_formatting.main_text : p.description.split(',')[0],
+        formatted_address: p.description
       }));
     }
     console.error('Google API Error:', data.status, data.error_message);
