@@ -71,7 +71,7 @@ router.get('/', async (req, res) => {
       WHERE 1=1 ${dateFilterStr}
       GROUP BY code
     ) s ON s.code = t.code
-    ORDER BY t.created_at DESC
+    ORDER BY t.created_at ASC
   `);
 
   const { rows: totals } = await pool.query(`
@@ -188,10 +188,10 @@ router.get('/print', async (req, res) => {
   const codes = (req.query.codes || '').split(',').filter(Boolean);
   let tags;
   if (codes.length) {
-    const { rows } = await pool.query('SELECT code FROM tags WHERE code = ANY($1) ORDER BY code', [codes]);
+    const { rows } = await pool.query("SELECT code FROM tags WHERE code = ANY($1) ORDER BY substring(code from '^[^0-9]*') ASC, NULLIF(substring(code from '[0-9]+'), '')::int ASC", [codes]);
     tags = rows;
   } else {
-    const { rows } = await pool.query('SELECT code FROM tags ORDER BY code');
+    const { rows } = await pool.query("SELECT code FROM tags ORDER BY substring(code from '^[^0-9]*') ASC, NULLIF(substring(code from '[0-9]+'), '')::int ASC");
     tags = rows;
   }
 
