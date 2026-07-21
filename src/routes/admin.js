@@ -63,7 +63,9 @@ router.get('/', async (req, res) => {
     SELECT t.*,
       COALESCE(s.nfc_count, 0) AS nfc_count,
       COALESCE(s.qr_count, 0) AS qr_count,
-      s.last_scan
+      s.last_scan,
+      g.rating AS google_rating,
+      g.user_ratings_total AS google_reviews
     FROM tags t
     LEFT JOIN (
       SELECT code, 
@@ -74,6 +76,11 @@ router.get('/', async (req, res) => {
       WHERE 1=1 ${dateFilterStr}
       GROUP BY code
     ) s ON s.code = t.code
+    LEFT JOIN (
+      SELECT DISTINCT ON (code) code, rating, user_ratings_total
+      FROM google_reviews_history
+      ORDER BY code, fetched_at DESC
+    ) g ON g.code = t.code
     ORDER BY t.created_at ASC
     LIMIT $1 OFFSET $2
   `, [limit, offset]);

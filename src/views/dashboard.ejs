@@ -67,6 +67,7 @@
           <th>Status</th>
           <th>NFC</th>
           <th>QR Code</th>
+          <th>Google</th>
           <th>Last Scan</th>
           <th>Price</th>
           <th></th>
@@ -86,6 +87,13 @@
           </td>
           <td data-label="NFC"><%= t.nfc_count %></td>
           <td data-label="QR Code"><%= t.qr_count %></td>
+          <td data-label="Google">
+            <% if (t.google_rating) { %>
+              <span style="color: #FFD700; font-size: 14px;">★</span> <b><%= parseFloat(t.google_rating).toFixed(1) %></b> <span style="font-size:12px; color:var(--ink-dim);">(<%= t.google_reviews %>)</span>
+            <% } else { %>
+              <span style="color:var(--ink-faint);">—</span>
+            <% } %>
+          </td>
           <td data-label="Last Scan"><%= t.last_scan ? new Date(t.last_scan).toLocaleDateString('en-US', { timeZone: 'Asia/Makassar' }) : '—' %></td>
           <td data-label="Price"><%= t.price_paid ? new Intl.NumberFormat('id-ID').format(t.price_paid) + ' IDR' : '—' %></td>
           <td data-label="Action"><a href="/admin/tags/<%= t.code %>" class="btn secondary">Manage</a></td>
