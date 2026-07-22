@@ -357,6 +357,12 @@ router.post('/tags/:code', express.urlencoded({ extended: true }), async (req, r
   const nowActive = !!active;
   const nowSync = !!google_sync;
 
+  // Filet de sécurité : si le lieu Google a changé, on régénère l'URL de redirection
+  // pour qu'elle corresponde toujours au lieu sélectionné (le QR lit review_url).
+  if (google_place_id && existing && google_place_id !== existing.google_place_id) {
+    review_url = `https://search.google.com/local/writereview?placeid=${google_place_id}`;
+  }
+
   await pool.query(
     `UPDATE tags SET
       business_name = $1,

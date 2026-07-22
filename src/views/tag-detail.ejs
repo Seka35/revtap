@@ -394,12 +394,14 @@ async function searchPlace() {
 
 function selectPlace(placeId, addressQuery) {
   document.getElementById('google_place_id').value = placeId;
+  // Auto-remplir l'URL de redirection : sélectionner le lieu = le QR pointe direct vers lui.
+  document.getElementById('review_url').value = `https://search.google.com/local/writereview?placeid=${placeId}`;
   const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(addressQuery)}&output=embed`;
-  
+
   document.getElementById('search_results').innerHTML = `
     <div style="background: rgba(127,191,143,0.1); border: 1px solid var(--good); padding: 10px; border-radius: 6px; margin-bottom: 10px;">
-      <span style="color:var(--good); font-weight: bold; display:block; margin-bottom:4px;">✅ Place ID selected!</span>
-      <span style="color:var(--ink); font-size: 12px;">Verify on the map below, then click <b>"Generate Google URL"</b> or "Save" at the bottom.</span>
+      <span style="color:var(--good); font-weight: bold; display:block; margin-bottom:4px;">✅ Lieu sélectionné — URL de redirection mise à jour !</span>
+      <span style="color:var(--ink); font-size: 12px;">Vérifie sur la carte ci-dessous, puis clique <b>"Save"</b> en bas. Le QR redirigera vers ce lieu.</span>
     </div>
     <iframe width="100%" height="200" style="border:0; border-radius: 6px;" loading="lazy" allowfullscreen src="${mapUrl}"></iframe>
   `;
