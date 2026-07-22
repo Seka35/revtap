@@ -64,6 +64,11 @@ router.get('/:code', async (req, res) => {
       return res.render('not-active', { code });
     }
 
+    // Empêche tout cache (navigateur, in-app browser, proxy/CDN) de figer
+    // l'ancienne destination : chaque scan doit relire l'URL à jour.
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     return res.redirect(302, tag.review_url);
   } catch (err) {
     console.error(err);
